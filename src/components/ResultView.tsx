@@ -12,6 +12,10 @@ const GRADE_CLASS: Record<string, string> = {
   D: "text-grade-d", E: "text-grade-e", F: "text-grade-f",
 };
 
+function formatBytes(b: number) {
+  return b >= 1048576 ? `${(b / 1048576).toFixed(2)} MB` : `${(b / 1024).toFixed(1)} KB`;
+}
+
 const ERRORS: Record<string, string> = {
   unreachable: "Não conseguimos abrir essa página. Confira o endereço e se o site está no ar.",
   timeout: "A página demorou demais para responder (mais de 60 s).",
@@ -30,6 +34,12 @@ export function ResultView({ id }: { id: string }) {
   const [requests, setRequests] = useState<RequestRow[]>([]);
   const [missing, setMissing] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [slow, setSlow] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setSlow(true), 45_000);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     let stop = false;
@@ -66,6 +76,11 @@ export function ResultView({ id }: { id: string }) {
       <div role="status" aria-live="polite" className="mx-auto flex max-w-md flex-col items-center gap-4 py-16 text-center">
         <Loader2 className="h-8 w-8 animate-spin text-accent" aria-hidden />
         <p>{STEPS[test?.status ?? "queued"]}</p>
+        {slow && (
+          <p className="text-sm text-muted">
+            Está demorando mais que o normal. Você pode esperar ou <Link href="/" className="underline">tentar de novo</Link>.
+          </p>
+        )}
       </div>
     );
   }
@@ -84,7 +99,7 @@ export function ResultView({ id }: { id: string }) {
 
   const tiles = [
     { label: "Tempo de carregamento", value: `${((test.loadMs ?? 0) / 1000).toFixed(2)} s` },
-    { label: "Tamanho da página", value: `${((test.pageBytes ?? 0) / 1048576).toFixed(2)} MB` },
+    { label: "Tamanho da página", value: formatBytes(test.pageBytes ?? 0) },
     { label: "Requisições", value: String(test.requestCount ?? 0) },
   ];
 

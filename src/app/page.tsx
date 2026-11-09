@@ -2,6 +2,8 @@ import { TestForm } from "@/components/TestForm";
 import { Legend } from "@/components/Legend";
 import { listLocations } from "@/lib/data";
 
+export const dynamic = "force-dynamic"; // the location list depends on live workers
+
 export default async function Home() {
   const locations = await listLocations();
   return (

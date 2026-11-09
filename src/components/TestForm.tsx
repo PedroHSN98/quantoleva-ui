@@ -67,6 +67,12 @@ export function TestForm({ locations }: { locations: Location[] }) {
           ))}
         </select>
       </div>
+      {locations.length === 0 && (
+        <div role="alert" className="flex items-start gap-2 rounded-md border border-border border-l-4 border-l-danger bg-surface p-3 text-sm">
+          <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-danger" aria-hidden />
+          <span>Nenhum servidor de teste está disponível agora. Tente de novo em alguns minutos.</span>
+        </div>
+      )}
       {error && (
         <div id="form-error" role="alert" className="flex items-start gap-2 rounded-md border border-border border-l-4 border-l-danger bg-surface p-3 text-sm">
           <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-danger" aria-hidden />
@@ -77,6 +83,7 @@ export function TestForm({ locations }: { locations: Location[] }) {
         type="submit" aria-busy={loading}
         className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-accent px-6 text-base font-semibold text-on-accent disabled:opacity-70"
         aria-disabled={loading}
+        disabled={locations.length === 0}
       >
         {loading && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
         Iniciar teste

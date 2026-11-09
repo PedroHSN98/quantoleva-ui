@@ -19,7 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main className="mx-auto max-w-content px-4 py-8">{children}</main>
         <footer className="border-t border-border">
           <div className="mx-auto max-w-content px-4 py-6 text-sm text-muted">
-            Projeto em construção. Resultados da fatia inicial são simulados.
+            Cada teste carrega a página num navegador real, sem cache. Os tempos variam de um teste para outro.
           </div>
         </footer>
       </body>

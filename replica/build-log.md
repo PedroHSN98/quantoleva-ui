@@ -14,3 +14,6 @@
 Data layer is FAKE (src/lib/data.ts): in-memory, simulated results, labelled as such in the UI.
 Real layer = Postgres + Playwright worker (replica-backend). Not done: screenshots in clone-screens/, console/a11y pass.
 Harder than expected: nothing yet; the real measurement worker and DNS-level SSRF guard are the big items.
+
+## 2026-11-09 test pass
+S01-S04, S06 now run on the real backend. 34/34 e2e passing (desktop 1440 + mobile 390), axe WCAG A/AA clean on S01 and S03, no console errors, no 5xx. Screenshots: replica/clone-screens/S03-desktop.png, S03-mobile.png. Bugs B01-B04 fixed, see bugs.md. Not started: S05 (breakdown charts), S07 (history).

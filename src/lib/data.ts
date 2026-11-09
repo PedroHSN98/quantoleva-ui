@@ -9,7 +9,10 @@ export function hashIp(ip: string): string {
 }
 
 export async function listLocations(): Promise<Location[]> {
-  const { rows } = await pool().query("select slug, name, region from locations where active order by name");
+  // Only locations whose worker checked in recently, otherwise a test would wait in the queue forever.
+  const { rows } = await pool().query(
+    "select slug, name, region from locations where active and worker_seen_at > now() - interval '3 minutes' order by name",
+  );
   return rows;
 }
 
@@ -82,7 +85,7 @@ export async function rateLimited(ipHash: string): Promise<boolean> {
     "select count(*)::int as n from tests where client_ip_hash = $1 and created_at > now() - interval '10 minutes'",
     [ipHash],
   );
-  return rows[0].n >= 5;
+  return rows[0].n >= Number(process.env.RATE_LIMIT_MAX ?? 5);
 }
 
 export async function createTest(url: string, locationSlug: string, ipHash: string): Promise<TestRow> {

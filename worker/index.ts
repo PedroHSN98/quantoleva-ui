@@ -113,6 +113,7 @@ async function main() {
   console.log(`worker started, location=${location}`);
   let lastReap = 0;
   while (!stopping) {
+    await pool.query("update locations set worker_seen_at = now() where slug = $1", [location]).catch(console.error);
     if (Date.now() - lastReap > 60_000) { await reap().catch(console.error); lastReap = Date.now(); }
     const job = await claim().catch((e) => { console.error(e); return undefined; });
     if (!job) { await sleep(1000); continue; }
