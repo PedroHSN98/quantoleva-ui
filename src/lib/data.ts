@@ -1,121 +1,108 @@
-// FAKE data layer for the vertical slice: in-memory, with a SIMULATED runner.
-// Same function signatures the real (Postgres + Playwright worker) layer will expose,
-// so swapping it in changes no screen code. Results here are NOT real measurements.
-import { evaluateRules, gradeFromRules } from "./grading";
-import type { ContentType, Location, RequestRow, RuleResult, TestRow } from "./types";
+// Postgres data layer. Same function signatures as the earlier fake layer, so no screen changed.
+import { createHash, randomBytes } from "node:crypto";
+import { pool } from "./db";
+import type { ContentType, ErrorCode, Location, RequestRow, RuleResult, TestRow } from "./types";
 
-interface Store {
-  tests: Map<string, TestRow>;
-  requests: Map<string, RequestRow[]>;
-  rules: Map<string, RuleResult[]>;
-  hits: Map<string, number[]>;
+export function hashIp(ip: string): string {
+  const secret = process.env.IP_HASH_SECRET ?? "dev-only-secret";
+  return createHash("sha256").update(`${secret}:${ip}`).digest("hex");
 }
 
-const g = globalThis as unknown as { __store?: Store };
-const store: Store = (g.__store ??= { tests: new Map(), requests: new Map(), rules: new Map(), hits: new Map() });
-
-const LOCATIONS: Location[] = [
-  { slug: "sa-east", name: "São Paulo", region: "América do Sul" },
-  { slug: "us-east", name: "Virgínia", region: "América do Norte" },
-  { slug: "eu-west", name: "Frankfurt", region: "Europa" },
-];
-
 export async function listLocations(): Promise<Location[]> {
-  return LOCATIONS;
+  const { rows } = await pool().query("select slug, name, region from locations where active order by name");
+  return rows;
 }
 
 export async function getTest(publicId: string): Promise<TestRow | null> {
-  return store.tests.get(publicId) ?? null;
+  const { rows } = await pool().query(
+    `select t.public_id, t.url, l.slug as location_slug, t.status, t.error_code, t.grade, t.score,
+            t.load_ms, t.page_bytes, t.request_count, t.created_at, t.finished_at
+       from tests t join locations l on l.id = t.location_id
+      where t.public_id = $1`,
+    [publicId],
+  );
+  const r = rows[0];
+  if (!r) return null;
+  return {
+    publicId: r.public_id,
+    url: r.url,
+    locationSlug: r.location_slug,
+    status: r.status,
+    errorCode: (r.error_code ?? undefined) as ErrorCode | undefined,
+    grade: r.grade ?? undefined,
+    score: r.score ?? undefined,
+    loadMs: r.load_ms ?? undefined,
+    pageBytes: r.page_bytes === null ? undefined : Number(r.page_bytes),
+    requestCount: r.request_count ?? undefined,
+    createdAt: r.created_at.toISOString(),
+    finishedAt: r.finished_at?.toISOString(),
+    simulated: false,
+  };
 }
 
 export async function getRequests(publicId: string): Promise<RequestRow[]> {
-  return store.requests.get(publicId) ?? [];
+  const { rows } = await pool().query(
+    `select r.seq, r.url, r.domain, r.content_type, r.status_code, r.size_bytes, r.start_ms,
+            r.blocked_ms, r.dns_ms, r.connect_ms, r.ssl_ms, r.send_ms, r.wait_ms, r.receive_ms
+       from requests r join tests t on t.id = r.test_id
+      where t.public_id = $1 order by r.start_ms, r.seq`,
+    [publicId],
+  );
+  return rows.map((r) => ({
+    seq: r.seq,
+    url: r.url,
+    domain: r.domain,
+    contentType: r.content_type as ContentType,
+    statusCode: r.status_code ?? 0,
+    sizeBytes: Number(r.size_bytes ?? 0),
+    startMs: r.start_ms,
+    blockedMs: r.blocked_ms ?? 0,
+    dnsMs: r.dns_ms ?? 0,
+    connectMs: r.connect_ms ?? 0,
+    sslMs: r.ssl_ms ?? 0,
+    sendMs: r.send_ms ?? 0,
+    waitMs: r.wait_ms ?? 0,
+    receiveMs: r.receive_ms ?? 0,
+  }));
 }
 
 export async function getRules(publicId: string): Promise<RuleResult[]> {
-  return store.rules.get(publicId) ?? [];
+  const { rows } = await pool().query(
+    `select rr.rule_key, rr.score, rr.advice, rr.name
+       from rule_results rr join tests t on t.id = rr.test_id
+      where t.public_id = $1 order by rr.score, rr.rule_key`,
+    [publicId],
+  );
+  return rows.map((r) => ({ key: r.rule_key, name: r.name, score: r.score, advice: r.advice ?? "" }));
 }
 
-/** Returns true when the caller is over the limit (5 tests per 10 minutes). */
-export function rateLimited(clientKey: string): boolean {
-  const now = Date.now();
-  const recent = (store.hits.get(clientKey) ?? []).filter((t) => now - t < 10 * 60_000);
-  if (recent.length >= 5) {
-    store.hits.set(clientKey, recent);
-    return true;
+/** True when this client already started 5 tests in the last 10 minutes. */
+export async function rateLimited(ipHash: string): Promise<boolean> {
+  const { rows } = await pool().query(
+    "select count(*)::int as n from tests where client_ip_hash = $1 and created_at > now() - interval '10 minutes'",
+    [ipHash],
+  );
+  return rows[0].n >= 5;
+}
+
+export async function createTest(url: string, locationSlug: string, ipHash: string): Promise<TestRow> {
+  const publicId = randomBytes(7).toString("base64url");
+  const client = await pool().connect();
+  try {
+    await client.query("begin");
+    const loc = await client.query("select id from locations where slug = $1 and active", [locationSlug]);
+    if (!loc.rows[0]) throw new Error("invalid_location");
+    const t = await client.query(
+      "insert into tests (public_id, url, location_id, client_ip_hash) values ($1, $2, $3, $4) returning id",
+      [publicId, url, loc.rows[0].id, ipHash],
+    );
+    await client.query("insert into jobs (test_id, location_id) values ($1, $2)", [t.rows[0].id, loc.rows[0].id]);
+    await client.query("commit");
+  } catch (e) {
+    await client.query("rollback");
+    throw e;
+  } finally {
+    client.release();
   }
-  recent.push(now);
-  store.hits.set(clientKey, recent);
-  return false;
-}
-
-export async function createTest(url: string, locationSlug: string): Promise<TestRow> {
-  const publicId = Math.random().toString(36).slice(2, 10);
-  const row: TestRow = {
-    publicId, url, locationSlug, status: "queued",
-    createdAt: new Date().toISOString(), simulated: true,
-  };
-  store.tests.set(publicId, row);
-  setTimeout(() => update(publicId, { status: "running" }), 800);
-  setTimeout(() => finish(publicId), 3200);
-  return row;
-}
-
-function update(id: string, patch: Partial<TestRow>) {
-  const t = store.tests.get(id);
-  if (t) store.tests.set(id, { ...t, ...patch });
-}
-
-function seeded(seed: number) {
-  let s = seed >>> 0 || 1;
-  return () => ((s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 4294967296);
-}
-
-function finish(id: string) {
-  const t = store.tests.get(id);
-  if (!t) return;
-  const host = new URL(t.url).hostname;
-  let seed = 7;
-  for (const c of t.url) seed = (Math.imul(seed, 31) + c.charCodeAt(0)) >>> 0;
-  const rnd = seeded(seed);
-
-  const kinds: ContentType[] = ["html", "js", "js", "css", "image", "image", "image", "font", "text", "other"];
-  const domains = [host, `cdn.${host}`, "fonts.example-cdn.net", "stats.example-analytics.net"];
-  const n = 12 + Math.floor(rnd() * 30);
-  const requests: RequestRow[] = [];
-  let cursor = 0;
-  for (let i = 0; i < n; i++) {
-    const contentType: ContentType = i === 0 ? "html" : kinds[Math.floor(rnd() * kinds.length)];
-    const blocked = Math.round(rnd() * 20);
-    const dns = i < 4 ? Math.round(10 + rnd() * 40) : 0;
-    const connect = i < 4 ? Math.round(15 + rnd() * 50) : 0;
-    const ssl = i < 4 ? Math.round(20 + rnd() * 60) : 0;
-    const send = 1 + Math.round(rnd() * 3);
-    const wait = Math.round(30 + rnd() * 250);
-    const receive = Math.round(5 + rnd() * 200);
-    const size = Math.round((contentType === "image" ? 20_000 + rnd() * 400_000 : 2_000 + rnd() * 150_000));
-    requests.push({
-      seq: i,
-      url: `https://${domains[i === 0 ? 0 : Math.floor(rnd() * domains.length)]}/${contentType === "html" ? "" : `assets/file-${i}.${contentType === "js" ? "js" : contentType === "css" ? "css" : contentType === "image" ? "jpg" : contentType === "font" ? "woff2" : "txt"}`}`,
-      domain: domains[i === 0 ? 0 : Math.floor(rnd() * domains.length)],
-      contentType,
-      statusCode: rnd() < 0.04 ? 404 : rnd() < 0.06 ? 301 : 200,
-      sizeBytes: size,
-      startMs: cursor,
-      blockedMs: blocked, dnsMs: dns, connectMs: connect, sslMs: ssl,
-      sendMs: send, waitMs: wait, receiveMs: receive,
-    });
-    cursor += Math.round(rnd() * 90);
-  }
-  const loadMs = Math.max(...requests.map((r) => r.startMs + r.blockedMs + r.dnsMs + r.connectMs + r.sslMs + r.sendMs + r.waitMs + r.receiveMs));
-  const pageBytes = requests.reduce((s, r) => s + r.sizeBytes, 0);
-  const rules = evaluateRules(requests, loadMs, pageBytes);
-  const { score, grade } = gradeFromRules(rules);
-
-  store.requests.set(id, requests);
-  store.rules.set(id, rules);
-  update(id, {
-    status: "done", loadMs, pageBytes, requestCount: requests.length,
-    score, grade, finishedAt: new Date().toISOString(),
-  });
+  return (await getTest(publicId))!;
 }

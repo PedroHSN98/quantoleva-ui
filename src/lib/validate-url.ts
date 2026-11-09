@@ -25,7 +25,7 @@ export function checkUrl(input: string): UrlCheck {
   return { ok: true, url: u.toString() };
 }
 
-function isPrivateIp(host: string): boolean {
+export function isPrivateIp(host: string): boolean {
   const v = isIP(host);
   if (v === 4) {
     const [a, b] = host.split(".").map(Number);

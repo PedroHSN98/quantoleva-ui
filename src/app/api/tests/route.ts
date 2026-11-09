@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createTest, listLocations, rateLimited } from "@/lib/data";
+import { createTest, hashIp, listLocations, rateLimited } from "@/lib/data";
 import { checkUrl } from "@/lib/validate-url";
 
 export async function POST(req: Request) {
@@ -19,8 +19,13 @@ export async function POST(req: Request) {
   if (!locations.some((l) => l.slug === slug)) return NextResponse.json({ error: "invalid_location" }, { status: 400 });
 
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
-  if (rateLimited(ip)) return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+  const ipHash = hashIp(ip);
+  if (await rateLimited(ipHash)) return NextResponse.json({ error: "rate_limited" }, { status: 429 });
 
-  const test = await createTest(check.url, slug);
-  return NextResponse.json({ publicId: test.publicId }, { status: 201 });
+  try {
+    const test = await createTest(check.url, slug, ipHash);
+    return NextResponse.json({ publicId: test.publicId }, { status: 201 });
+  } catch {
+    return NextResponse.json({ error: "internal" }, { status: 500 });
+  }
 }
