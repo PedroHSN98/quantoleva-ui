@@ -1,0 +1,24 @@
+feature,area,priority,original,clone,notes
+URL input and validation,form,must,yes,yes,"scheme added, private hosts blocked"
+Test location selector,form,should,yes,partial,3 fake locations
+Run speed test with headless browser,engine,must,yes,partial,"SIMULATED runner, no Playwright yet"
+Load time metric,summary,must,yes,partial,simulated value
+Page size metric,summary,must,yes,partial,simulated value
+Request count metric,summary,must,yes,partial,simulated value
+Performance grade (letter + score),summary,must,yes,partial,"original rules, simulated input"
+Improve page performance recommendations,insights,should,yes,partial,"6 rules, simulated input"
+Content size by content type,breakdown,should,yes,no,
+Requests by content type,breakdown,could,yes,no,
+Content size by domain,breakdown,could,yes,no,
+Waterfall of file requests,waterfall,must,yes,partial,simulated data
+State colors DNS/SSL/Connect/Send/Wait/Receive/Blocked,waterfall,must,yes,yes,
+Content type icons and status code dots,waterfall,should,yes,yes,
+Expand request to see headers and cacheability,waterfall,should,yes,partial,"timings only, no headers yet"
+Shareable result permalink,results,should,yes,partial,"in-memory, lost on restart"
+Test history,results,could,unknown,no,inferred
+Error states (unreachable/timeout),results,must,yes,partial,"UI ready, runner never fails yet"
+SSRF protection and rate limiting,security,must,n/a,partial,string checks + in-memory rate limit; DNS re-check belongs in worker
+Uptime/RUM/transaction monitoring and alerting,paid product,skip,yes,no,out of scope
+Live Map,tools,skip,yes,no,out of scope
+Global network of 70+ locations,infrastructure,skip,yes,no,cannot clone
+Pingdom API,integration,skip,yes,no,out of scope

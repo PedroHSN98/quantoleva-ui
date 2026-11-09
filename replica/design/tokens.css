@@ -1,0 +1,52 @@
+:root {
+  --bg: #ffffff;
+  --surface: #f6f7f9;
+  --surface-2: #eceff3;
+  --border: #e3e6ea;
+  --border-input: #868e98;
+  --text: #14171c;
+  --text-muted: #5b6470;
+  --accent: #2f5bea;
+  --on-accent: #ffffff;
+  --danger: #c62f2f;
+  --success: #1f7a4d;
+  --warning: #8a5a00;
+
+  --grade-a: #1f7a4d;
+  --grade-b: #4d7a1f;
+  --grade-c: #8a5a00;
+  --grade-d: #b24a12;
+  --grade-e: #c62f2f;
+  --grade-f: #8f1d1d;
+
+  --wf-blocked: #8a94a3;
+  --wf-dns: #0f8b8d;
+  --wf-connect: #d97706;
+  --wf-ssl: #7c3aed;
+  --wf-send: #db2777;
+  --wf-wait: #2f5bea;
+  --wf-receive: #1f9d55;
+
+  --status-2xx: #1f7a4d;
+  --status-3xx: #8a5a00;
+  --status-4xx: #c62f2f;
+  --status-5xx: #7a1d6e;
+
+  --font-sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  --shadow-card: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.10);
+  --shadow-pop: 0 12px 32px rgba(16,24,40,.16);
+
+  --motion-fast: 120ms;
+  --motion-base: 200ms;
+  --ease: cubic-bezier(.2,.8,.2,1);
+
+  --content-max: 1120px;
+  --header-h: 64px;
+}
