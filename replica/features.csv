@@ -1,6 +1,6 @@
 feature,area,priority,original,clone,notes
 URL input and validation,form,must,yes,yes,"scheme added, private hosts blocked"
-Test location selector,form,should,yes,partial,"3 locations in DB; only one worker (sa-east) exists, same machine"
+Test location selector,form,should,yes,partial,"UI offers only locations with a live worker (currently 1: sa-east, same machine); other regions need real servers"
 Run speed test with headless browser,engine,must,yes,yes,Playwright/Chromium via CDP network events
 Load time metric,summary,must,yes,yes,time to load event
 Page size metric,summary,must,yes,yes,sum of encoded bytes
@@ -18,7 +18,7 @@ Shareable result permalink,results,should,yes,yes,persisted in Postgres
 Test history,results,could,unknown,no,inferred
 Error states (unreachable/timeout),results,must,yes,yes,"unreachable, blocked, timeout, internal verified except timeout"
 SSRF protection and rate limiting,security,must,n/a,yes,"DNS check on first URL, redirects and sub-requests; 5 tests/10 min per hashed IP. Known gap: DNS rebinding race"
-Uptime/RUM/transaction monitoring and alerting,paid product,skip,yes,no,out of scope
-Live Map,tools,skip,yes,no,out of scope
-Global network of 70+ locations,infrastructure,skip,yes,no,cannot clone
-Pingdom API,integration,skip,yes,no,out of scope
+Uptime/RUM/transaction monitoring and alerting,paid product,could,yes,skip,out of scope
+Live Map,tools,could,yes,skip,out of scope
+Global network of 70+ locations,infrastructure,could,yes,skip,cannot clone
+Pingdom API,integration,could,yes,skip,out of scope
