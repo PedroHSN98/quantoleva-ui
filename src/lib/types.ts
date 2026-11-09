@@ -23,6 +23,8 @@ export interface TestRow {
   loadMs?: number;
   pageBytes?: number;
   requestCount?: number;
+  /** HTTP status of the main page (first response that is not a redirect). Undefined if unknown. */
+  docStatus?: number;
   /** how many of the planned runs have finished (progress while running) */
   runsDone: number;
   runsPlanned: number;

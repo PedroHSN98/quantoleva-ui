@@ -80,3 +80,13 @@ A nota é a média ponderada. O tempo vale 3 e os domínios 1; as três regras d
 **Testes:** `e2e/grading.spec.ts` (G1 a G7) fixa a curva, o caso "página pesada típica não é F", e "página muito pesada e lenta ainda é F". Suíte completa: 102 passam.
 
 **Ainda aberto:** itens 3 a 6 acima. Em especial o item 4 (avisar bloqueio): sem ele, páginas bloqueadas (TSE, Reddit, Mercado Livre) ainda recebem nota A.
+
+## Aplicado em 2026-11-09 (item 4: aviso de bloqueio)
+
+**Regra:** a página principal é a primeira resposta que não é redirecionamento (3xx). Se o status dela for 400 ou mais, o resultado mostra um aviso, **não mostra nota** e esconde "Como melhorar" (as dicas seriam sobre a página de erro). Mensagens (`src/lib/block-notice.ts`): 401/403/429 e outros 4xx = "Site bloqueou o teste"; 404/410 = "Página não encontrada"; 5xx = "Erro no site". Vale também para resultados antigos, porque o status é lido das requisições já salvas (sem migração).
+
+**Medido de verdade:** TSE, Magalu, Mercado Livre e NYTimes responderam 403 à página principal (NYTimes com o servidor `DataDome`, um serviço anti-robô). Stack Overflow só redirecionou (307) e depois carregou.
+
+**Limite conhecido:** o Reddit respondeu 200 com uma página mínima (2 requisições, 195 KB), provavelmente uma verificação anti-robô. Isso não dá para distinguir de um site pequeno legítimo (o example.com tem 2 requisições e 1 KB e é real). Por isso **não** há regra de "poucas requisições": ela daria falso alarme. Esses casos continuam com nota.
+
+**Testes:** `e2e/blocked.spec.ts` (K1 a K5). Suíte completa: 112 passam.

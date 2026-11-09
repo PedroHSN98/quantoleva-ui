@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, Loader2, Plus, TriangleAlert } from "lucide-react";
 import type { TestRow } from "@/lib/types";
+import { blockNotice } from "@/lib/block-notice";
 
 const GRADE_CLASS: Record<string, string> = {
   A: "text-grade-a", B: "text-grade-b", C: "text-grade-c",
@@ -92,14 +93,17 @@ export function BatchView({ ids }: { ids: string[] }) {
                     {t && t.status === "running" && (
                       <span className="inline-flex items-center gap-1"><Loader2 className="h-4 w-4 animate-spin" aria-hidden />Medindo</span>
                     )}
-                    {t && t.status === "done" && <span className="inline-flex items-center gap-1"><CheckCircle2 className="h-4 w-4 text-success" aria-hidden />Pronto</span>}
+                    {t && t.status === "done" && !blockNotice(t.docStatus) && <span className="inline-flex items-center gap-1"><CheckCircle2 className="h-4 w-4 text-success" aria-hidden />Pronto</span>}
+                    {t && t.status === "done" && blockNotice(t.docStatus) && (
+                      <span className="inline-flex items-center gap-1"><TriangleAlert className="h-4 w-4 text-warning" aria-hidden />{blockNotice(t.docStatus)!.short}</span>
+                    )}
                     {t && t.status === "failed" && (
                       <span className="inline-flex items-center gap-1"><TriangleAlert className="h-4 w-4 text-danger" aria-hidden />{ERRORS[t.errorCode ?? "internal"]}</span>
                     )}
                   </td>
                   <td className="px-3 py-2 text-right tabular-nums">{t?.status === "done" ? seconds(t.loadMs ?? 0) : "-"}</td>
                   <td className={`px-3 py-2 text-center text-lg font-bold ${t?.grade ? GRADE_CLASS[t.grade] : ""}`}>
-                    {t?.status === "done" ? <span aria-label={`Nota ${t.grade}, ${t.score} de 100`}>{t.grade}</span> : "-"}
+                    {t?.status === "done" && !blockNotice(t.docStatus) ? <span aria-label={`Nota ${t.grade}, ${t.score} de 100`}>{t.grade}</span> : "-"}
                   </td>
                   <td className="px-3 py-2 text-right tabular-nums">{t?.status === "done" ? formatBytes(t.pageBytes ?? 0) : "-"}</td>
                   <td className="px-3 py-2 text-right tabular-nums">{t?.status === "done" ? t.requestCount : "-"}</td>

@@ -20,7 +20,10 @@ export async function listLocations(): Promise<Location[]> {
 export async function getTest(publicId: string): Promise<TestRow | null> {
   const { rows } = await pool().query(
     `select t.public_id, t.url, l.slug as location_slug, t.status, t.error_code, t.grade, t.score,
-            t.load_ms, t.page_bytes, t.request_count, t.created_at, t.started_at, t.finished_at, t.runs_done, t.id
+            t.load_ms, t.page_bytes, t.request_count, t.created_at, t.started_at, t.finished_at, t.runs_done, t.id,
+            (select q.status_code from requests q
+              where q.test_id = t.id and q.status_code > 0 and q.status_code not between 300 and 399
+              order by q.start_ms, q.seq limit 1) as doc_status
        from tests t join locations l on l.id = t.location_id
       where t.public_id = $1`,
     [publicId],
@@ -51,6 +54,7 @@ export async function getTest(publicId: string): Promise<TestRow | null> {
     loadMs: r.load_ms ?? undefined,
     pageBytes: r.page_bytes === null ? undefined : Number(r.page_bytes),
     requestCount: r.request_count ?? undefined,
+    docStatus: r.doc_status ?? undefined,
     createdAt: r.created_at.toISOString(),
     startedAt: r.started_at?.toISOString(),
     finishedAt: r.finished_at?.toISOString(),

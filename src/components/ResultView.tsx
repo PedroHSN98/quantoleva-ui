@@ -5,6 +5,7 @@ import Link from "next/link";
 import { CheckCircle2, Copy, Loader2, Plus, TriangleAlert } from "lucide-react";
 import type { RequestRow, RuleResult, TestRow } from "@/lib/types";
 import { spread } from "@/lib/median";
+import { blockNotice } from "@/lib/block-notice";
 import { Waterfall } from "./Waterfall";
 import { Legend } from "./Legend";
 
@@ -102,6 +103,7 @@ export function ResultView({ id }: { id: string }) {
     );
   }
 
+  const notice = blockNotice(test.docStatus);
   const many = test.runs.length > 1;
   const sp = test.runs.length > 0 ? spread(test.runs) : null;
   const tiles = [
@@ -162,8 +164,17 @@ export function ResultView({ id }: { id: string }) {
         <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
           <div className="rounded-lg border border-border bg-surface p-4 text-center">
             <p className="text-xs text-muted">Nota de desempenho</p>
-            <p className={`text-grade ${GRADE_CLASS[test.grade ?? "F"]}`} aria-label={`Nota ${test.grade}, ${test.score} de 100`}>{test.grade}</p>
-            <p className="text-sm text-muted">{test.score}/100</p>
+            {notice ? (
+              <>
+                <p className="text-grade text-muted" aria-label="Sem nota: o site bloqueou o teste ou deu erro">-</p>
+                <p className="text-sm text-muted">sem nota</p>
+              </>
+            ) : (
+              <>
+                <p className={`text-grade ${GRADE_CLASS[test.grade ?? "F"]}`} aria-label={`Nota ${test.grade}, ${test.score} de 100`}>{test.grade}</p>
+                <p className="text-sm text-muted">{test.score}/100</p>
+              </>
+            )}
           </div>
           {tiles.map((t) => (
             <div key={t.label} className="rounded-md border border-border bg-surface p-4">
@@ -174,6 +185,15 @@ export function ResultView({ id }: { id: string }) {
           ))}
         </div>
 
+        {notice && (
+          <div role="note" className="flex items-start gap-2 rounded-md border border-border border-l-4 border-l-warning bg-surface p-3 text-sm">
+            <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden />
+            <div>
+              <p className="font-semibold">{notice.short}</p>
+              <p>{notice.long}</p>
+            </div>
+          </div>
+        )}
         {sp?.wide && (
           <p role="note" className="rounded-md border border-border border-l-4 border-l-warning bg-surface p-3 text-sm">
             Os tempos variaram bastante entre as execuções ({seconds(sp.min)} a {seconds(sp.max)}). Não confie num número só: rode de novo para confirmar.
@@ -218,6 +238,7 @@ export function ResultView({ id }: { id: string }) {
         </section>
       )}
 
+      {!notice && (
       <section aria-labelledby="rules" className="space-y-3">
         <h2 id="rules" className="text-lg">Como melhorar</h2>
         <ul className="divide-y divide-border rounded-md border border-border">
@@ -235,6 +256,7 @@ export function ResultView({ id }: { id: string }) {
           ))}
         </ul>
       </section>
+      )}
 
       <section aria-labelledby="files" className="space-y-3">
         <h2 id="files" className="text-lg">{many ? "Arquivos pedidos (execução mediana)" : "Arquivos pedidos"}</h2>
