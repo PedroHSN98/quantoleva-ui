@@ -33,7 +33,7 @@ Rule applied to every line: **only say what exists today.** The angle in `fixes.
 - Perfil de celular.
 
 ## 5. Pricing
-Grátis, sem conta, com limite de 5 testes a cada 10 minutos. Planos pagos ainda não existem. See `pricing.md`.
+Grátis, sem conta, com limite de 15 testes a cada 10 minutos. Planos pagos ainda não existem. See `pricing.md`.
 
 ## 6. FAQ
 - Os tempos são iguais aos do meu navegador? Não. O teste roda num navegador de servidor, sem cache. Rode mais de uma vez e olhe a tendência.

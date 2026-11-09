@@ -11,7 +11,11 @@ const url = process.env.DATABASE_URL;
 const location = process.env.WORKER_LOCATION ?? "sa-east";
 if (!url) throw new Error("DATABASE_URL is not set");
 
-const pool = new Pool({ connectionString: url, max: 3 });
+// How many tests this worker measures at the same time. Each one runs its own Chromium
+// (about 200-300 MB each), so raise it only if the machine has the memory.
+const CONCURRENCY = Math.max(1, Number(process.env.WORKER_CONCURRENCY) || 3);
+
+const pool = new Pool({ connectionString: url, max: CONCURRENCY * 2 + 2 });
 let stopping = false;
 process.on("SIGINT", () => { stopping = true; });
 process.on("SIGTERM", () => { stopping = true; });
@@ -145,18 +149,25 @@ async function run(job: { id: string; test_id: string }) {
 }
 
 async function main() {
-  console.log(`worker started, location=${location}`);
+  console.log(`worker started, location=${location}, concurrency=${CONCURRENCY}`);
   // Heartbeat on its own timer, so the location stays listed while a long test is running.
   const beat = () => pool.query("update locations set worker_seen_at = now() where slug = $1", [location]).catch(console.error);
   await beat();
   const timer = setInterval(beat, 30_000);
   let lastReap = 0;
+  const active = new Set<Promise<void>>();
   while (!stopping) {
     if (Date.now() - lastReap > 60_000) { await reap().catch(console.error); lastReap = Date.now(); }
+    // Full: wait until one of the running tests finishes, then look for the next job.
+    if (active.size >= CONCURRENCY) { await Promise.race(active); continue; }
     const job = await claim().catch((e) => { console.error(e); return undefined; });
     if (!job) { await sleep(1000); continue; }
-    await run(job).catch((e) => console.error("run error", e));
+    const task: Promise<void> = run(job)
+      .catch((e) => console.error("run error", e))
+      .finally(() => { active.delete(task); });
+    active.add(task);
   }
+  await Promise.allSettled(active); // let running tests finish on shutdown
   clearInterval(timer);
   await pool.end();
 }

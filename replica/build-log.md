@@ -20,3 +20,6 @@ S01-S04, S06 now run on the real backend. 34/34 e2e passing (desktop 1440 + mobi
 
 ## 2026-11-09 median of 3 runs
 Worker runs 3 cold runs, saves each in test_runs, median run feeds grade and waterfall. UI: median tile with range, runs table, variance warning, progress 'Execucao n de 3'. 62/62 e2e (incl. median unit tests M1-M6, F01-R1, F01-R2). Real check: pt.wikipedia.org 953/884/914 ms, median 914.
+
+## 2026-11-09 several addresses at once
+Form takes up to 5 addresses; /comparar shows them in one table with live progress; worker runs 3 tests at a time; "Testar outro endereco" button on results and on the comparison page; first-response tile. 90/90 e2e. Real check: 5 government sites in 17 s, 3 overlapped.

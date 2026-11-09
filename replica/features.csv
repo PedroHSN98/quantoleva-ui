@@ -26,3 +26,8 @@ Median of 3 runs with range and variance note,results,should,no,yes,"3 cold runs
 Side-by-side comparison of test regions,form,should,no,no,from entrepreneur: needs 2+ real workers
 Explain each score with file-level fix hints,insights,should,no,no,from entrepreneur: thin evidence
 "Desktop/mobile profile and ""served a different page"" note",form,could,no,no,from entrepreneur: thin evidence
+Test up to 5 addresses in one submit,form,should,no,yes,built 2026-11-09; duplicates collapse; one bad line rejects the whole submit with its index
+Comparison table for several tests,results,should,no,yes,/comparar?ids=...; polls every second; failed rows do not hide the others
+"Test another address" button after a result,results,should,no,yes,top and bottom of the result page; also on the comparison page
+Worker measures several tests at the same time,engine,should,no,yes,WORKER_CONCURRENCY default 3; verified overlap with 5 government sites
+First server response time tile,results,could,no,yes,DNS+connect+TLS+send+wait of the first HTML request; web response time, not ICMP ping

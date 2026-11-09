@@ -1,6 +1,7 @@
 // Postgres data layer. Same function signatures as the earlier fake layer, so no screen changed.
 import { createHash, randomBytes } from "node:crypto";
 import { pool } from "./db";
+import { rateLimit } from "./limits";
 import { RUNS_PLANNED, type ContentType, type ErrorCode, type Location, type RequestRow, type RuleResult, type TestRow } from "./types";
 
 export function hashIp(ip: string): string {
@@ -19,7 +20,7 @@ export async function listLocations(): Promise<Location[]> {
 export async function getTest(publicId: string): Promise<TestRow | null> {
   const { rows } = await pool().query(
     `select t.public_id, t.url, l.slug as location_slug, t.status, t.error_code, t.grade, t.score,
-            t.load_ms, t.page_bytes, t.request_count, t.created_at, t.finished_at, t.runs_done, t.id
+            t.load_ms, t.page_bytes, t.request_count, t.created_at, t.started_at, t.finished_at, t.runs_done, t.id
        from tests t join locations l on l.id = t.location_id
       where t.public_id = $1`,
     [publicId],
@@ -51,6 +52,7 @@ export async function getTest(publicId: string): Promise<TestRow | null> {
     pageBytes: r.page_bytes === null ? undefined : Number(r.page_bytes),
     requestCount: r.request_count ?? undefined,
     createdAt: r.created_at.toISOString(),
+    startedAt: r.started_at?.toISOString(),
     finishedAt: r.finished_at?.toISOString(),
     simulated: false,
   };
@@ -92,13 +94,23 @@ export async function getRules(publicId: string): Promise<RuleResult[]> {
   return rows.map((r) => ({ key: r.rule_key, name: r.name, score: r.score, advice: r.advice ?? "" }));
 }
 
-/** True when this client already started 5 tests in the last 10 minutes. */
-export async function rateLimited(ipHash: string): Promise<boolean> {
+/** How many tests are waiting and how many are being measured right now. */
+export async function queueStats(): Promise<{ queued: number; running: number }> {
+  const { rows } = await pool().query(
+    `select count(*) filter (where status = 'queued')::int as queued,
+            count(*) filter (where status = 'running')::int as running
+       from tests where status in ('queued','running')`,
+  );
+  return rows[0];
+}
+
+/** True when starting `adding` more tests would put this client over the limit in the last 10 minutes. */
+export async function rateLimited(ipHash: string, adding = 1): Promise<boolean> {
   const { rows } = await pool().query(
     "select count(*)::int as n from tests where client_ip_hash = $1 and created_at > now() - interval '10 minutes'",
     [ipHash],
   );
-  return rows[0].n >= Number(process.env.RATE_LIMIT_MAX ?? 5);
+  return rows[0].n + adding > rateLimit();
 }
 
 export async function createTest(url: string, locationSlug: string, ipHash: string): Promise<TestRow> {

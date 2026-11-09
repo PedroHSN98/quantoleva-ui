@@ -13,7 +13,8 @@ test.describe("landing sections on /", () => {
   test("L2 unbuilt features are labelled as not existing", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { name: /Em breve \(ainda não existe\)/ })).toBeVisible();
-    await expect(page.getByText("Planos pagos ainda não existem")).toBeVisible();
+    await expect(page.getByText(/Planos pagos ainda não existem/)).toBeVisible();
+    await expect(page.getByText(/limite de \d+ testes a cada 10 minutos/)).toBeVisible();
   });
 
   test("L3 no fake proof and no original name", async ({ page }) => {

@@ -29,6 +29,7 @@ export interface TestRow {
   /** every finished run, with the median one flagged. Empty for tests made before runs existed. */
   runs: RunSummary[];
   createdAt: string;
+  startedAt?: string;
   finishedAt?: string;
   /** true while the data layer is the fake in-memory one */
   simulated: boolean;

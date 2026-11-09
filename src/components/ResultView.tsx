@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, Copy, Loader2, TriangleAlert } from "lucide-react";
+import { CheckCircle2, Copy, Loader2, Plus, TriangleAlert } from "lucide-react";
 import type { RequestRow, RuleResult, TestRow } from "@/lib/types";
 import { spread } from "@/lib/median";
 import { Waterfall } from "./Waterfall";
@@ -112,6 +112,16 @@ export function ResultView({ id }: { id: string }) {
     { label: "Tamanho da página", value: formatBytes(test.pageBytes ?? 0), hint: many ? "da execução mediana" : undefined },
     { label: "Requisições", value: String(test.requestCount ?? 0), hint: many ? "da execução mediana" : undefined },
   ];
+  // Time until the server starts answering with the page (DNS + connection + TLS + request + wait),
+  // from the first successful HTML request. This is a web response time, not an ICMP ping.
+  const first = requests.find((r) => r.contentType === "html" && r.statusCode >= 200 && r.statusCode < 300) ?? requests[0];
+  if (first) {
+    tiles.push({
+      label: "Primeira resposta do servidor",
+      value: `${first.dnsMs + first.connectMs + first.sslMs + first.sendMs + first.waitMs} ms`,
+      hint: "até o servidor começar a enviar a página",
+    });
+  }
 
   async function copyLink() {
     try {
@@ -136,13 +146,19 @@ export function ResultView({ id }: { id: string }) {
             <p className="break-all text-sm text-muted">{test.url}</p>
             <p className="text-sm text-muted">Local: {test.locationSlug} · {new Date(test.createdAt).toLocaleString("pt-BR")}</p>
           </div>
-          <button type="button" onClick={copyLink} className="inline-flex h-10 items-center gap-2 rounded-md border border-border bg-surface px-4 text-sm font-semibold">
-            {copied ? <CheckCircle2 className="h-4 w-4 text-success" aria-hidden /> : <Copy className="h-4 w-4" aria-hidden />}
-            {copied ? "Link copiado" : "Copiar link"}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/#teste" className="inline-flex h-10 items-center gap-2 rounded-md bg-accent px-4 text-sm font-semibold text-on-accent">
+              <Plus className="h-4 w-4" aria-hidden />
+              Testar outro endereço
+            </Link>
+            <button type="button" onClick={copyLink} className="inline-flex h-10 items-center gap-2 rounded-md border border-border bg-surface px-4 text-sm font-semibold">
+              {copied ? <CheckCircle2 className="h-4 w-4 text-success" aria-hidden /> : <Copy className="h-4 w-4" aria-hidden />}
+              {copied ? "Link copiado" : "Copiar link"}
+            </button>
+          </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
           <div className="rounded-lg border border-border bg-surface p-4 text-center">
             <p className="text-xs text-muted">Nota de desempenho</p>
             <p className={`text-grade ${GRADE_CLASS[test.grade ?? "F"]}`} aria-label={`Nota ${test.grade}, ${test.score} de 100`}>{test.grade}</p>
@@ -224,6 +240,13 @@ export function ResultView({ id }: { id: string }) {
         <Waterfall requests={requests} />
         <Legend />
       </section>
+
+      <div className="text-center">
+        <Link href="/#teste" className="inline-flex h-12 items-center gap-2 rounded-md bg-accent px-6 font-semibold text-on-accent">
+          <Plus className="h-4 w-4" aria-hidden />
+          Testar outro endereço
+        </Link>
+      </div>
     </div>
   );
 }

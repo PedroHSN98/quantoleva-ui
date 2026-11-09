@@ -23,7 +23,7 @@ When something paid exists, a proposal to validate with the first 10 users, not 
 
 | tier | for | includes | price to test |
 | --- | --- | --- | --- |
-| Grátis | anyone | what exists today, 5 tests per 10 minutes, no account | US$0 |
+| Grátis | anyone | what exists today, 15 tests per 10 minutes, no account | US$0 |
 | Pro | freelancers and small sites | history, scheduled tests, 3 runs with range, more locations | around US$9/month, or US$90/year (2 months free). In the GTmetrix Lite to Core band, below Pingdom's paid monitoring. |
 | Equipe (later) | agencies | shared reports, more pages | decide after the first 10 conversations |
 

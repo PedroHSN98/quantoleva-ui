@@ -37,3 +37,9 @@ Scope: anonymous tool. Auth, payments, email: not needed, not built.
 
 ## Not built (not in scope)
 Auth, accounts and test history, Stripe, email, third-party integrations.
+
+## Concurrency and batches (2026-11-09)
+- Worker measures `WORKER_CONCURRENCY` tests at once (default 3), each with its own Chromium, about 200-300 MB each. Jobs are claimed with SKIP LOCKED so more workers can be added.
+- `POST /api/tests` accepts `{ urls: [...] }` (max 5). Everything is validated before anything is created. Rate limit counts every test: 15 per 10 minutes per client (`RATE_LIMIT_MAX`).
+- `GET /api/status` returns `{ queued, running }`, counts only.
+- Memory is the real limit: 3 concurrent tests need roughly 1 GB free.

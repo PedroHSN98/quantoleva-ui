@@ -2,6 +2,7 @@ import { TestForm } from "@/components/TestForm";
 import { Legend } from "@/components/Legend";
 import { listLocations } from "@/lib/data";
 import { BRAND } from "@/lib/brand";
+import { MAX_URLS_PER_SUBMIT, rateLimit } from "@/lib/limits";
 
 export const dynamic = "force-dynamic"; // the location list depends on live workers
 
@@ -12,6 +13,7 @@ const STEPS = [
 ];
 
 const FEATURES = [
+  { title: "Vários endereços ao mesmo tempo", text: `Teste até ${MAX_URLS_PER_SUBMIT} sites de uma vez e compare tempo, nota e peso numa tabela só.` },
   { title: "Três execuções, mediana e faixa", text: "Cada teste carrega a página 3 vezes. Você vê o tempo mediano e de quanto a 1ª à última variou." },
   { title: "Navegador de verdade, sem cache", text: "Cada teste abre a página como um visitante novo." },
   { title: "Cada arquivo, etapa por etapa", text: "Bloqueio, DNS, conexão, SSL, envio, espera e recebimento." },
@@ -102,7 +104,7 @@ export default async function Home() {
       <section aria-labelledby="preco" className="mx-auto max-w-2xl space-y-3">
         <h2 id="preco" className="text-xl">Preço</h2>
         <p>
-          Grátis, sem conta, com limite de 5 testes a cada 10 minutos. Planos pagos ainda não existem.
+          Grátis, sem conta, com limite de {rateLimit()} testes a cada 10 minutos. Planos pagos ainda não existem.
         </p>
       </section>
 
