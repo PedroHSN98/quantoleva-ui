@@ -1,0 +1,14 @@
+source,url,date,rating,text
+hacker-news,https://news.ycombinator.com/item?id=13654915,2017-02-15,,"Maybe it's me but their test seems to hate sites hosted in europe. (Strato, Germany)"
+hacker-news,https://news.ycombinator.com/item?id=13654915,2017-02-15,,"Same host, https, an empty page with 0b - only gets 72/100 because of missing HTTP2 and slow TTFB of 185ms.
+Insights doesn't even render this page and it gets 83/100 from Pingdom.
+Faster than 99% of sites, 0B and still only 83/100. I think most of these metrics are a bit off..."
+hacker-news,https://news.ycombinator.com/item?id=13654915,2017-02-15,,66(mobile)/77(desktop) of 100 from Google PageSpeed Insights (with more useful hints what to fix) and 75/100 from tools.pingdom.com (224kb incl JS and CSS is apparently still too big and missing caching/Vary header).
+hacker-news,https://news.ycombinator.com/item?id=13249279,2016-12-24,,"The backend number is nice, really, but the quoted load time by the tool isn't. My jenkins loads almost as fast, (and according to the tool faster than HN), and isn't even hosted in a DC."
+hacker-news,https://news.ycombinator.com/item?id=24414306,2020-09-08,,"The hilarous thing is that if you put in https://www.reddit.com to pingdom's measurement tool, reddit returns the old site layout."
+hacker-news,https://news.ycombinator.com/item?id=32141582,2022-07-18,,"When you submit a site, you also provide its Pingdom results from this link, which may be different from the in-browser experience:"
+hacker-news,https://news.ycombinator.com/item?id=13639879,2017-02-13,,There's a trick to make it even faster - serve from a CDN closer to the testing server :-)
+hacker-news,https://news.ycombinator.com/item?id=13902333,2017-03-18,,This matters less when you test from New York (where Smashing Magazine hosts their Wordpress version of the site).
+hacker-news,https://news.ycombinator.com/item?id=17192511,2018-05-30,,I use Pingdom's speed test. I like that it doesn't require creating an account and gives some useful tips
+hacker-news,https://news.ycombinator.com/item?id=13370173,2017-01-10,,"I find testing using these types of tools better, as it gives a real world performance metric (actual load times)"
+wordpress-forum,https://wordpress.org/support/topic/speed-test-high-grade-low-speed/,2016-04,,"By default pingdom checks loading speed from USA. If you server is in UK, change setting in Pingdom to Amsterdam and it suppose to load faster"

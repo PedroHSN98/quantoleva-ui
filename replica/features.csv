@@ -22,3 +22,7 @@ Uptime/RUM/transaction monitoring and alerting,paid product,could,yes,skip,out o
 Live Map,tools,could,yes,skip,out of scope
 Global network of 70+ locations,infrastructure,could,yes,skip,cannot clone
 Pingdom API,integration,could,yes,skip,out of scope
+Median of 3 runs with range and variance note,results,should,no,no,from entrepreneur: users distrust a single number
+Side-by-side comparison of test regions,form,should,no,no,from entrepreneur: needs 2+ real workers
+Explain each score with file-level fix hints,insights,should,no,no,from entrepreneur: thin evidence
+Desktop/mobile profile and "served a different page" note,form,could,no,no,from entrepreneur: thin evidence
