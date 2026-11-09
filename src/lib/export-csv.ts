@@ -91,8 +91,8 @@ export function fileNameFor(url: string, ext = "csv"): string {
 }
 
 /** Browser only: hand the text to the user as a file. */
-export function downloadText(name: string, text: string) {
-  const blob = new Blob([text], { type: "text/csv;charset=utf-8" });
+export function downloadText(name: string, text: string, mime = "text/csv;charset=utf-8") {
+  const blob = new Blob([text], { type: mime });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = name;

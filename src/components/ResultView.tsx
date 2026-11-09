@@ -7,6 +7,7 @@ import { downloadText, fileNameFor, resultCsv } from "@/lib/export-csv";
 import type { RequestRow, RuleResult, TestRow } from "@/lib/types";
 import { spread } from "@/lib/median";
 import { blockNotice } from "@/lib/block-notice";
+import { ImprovementPlan } from "./ImprovementPlan";
 import { Waterfall } from "./Waterfall";
 import { Legend } from "./Legend";
 
@@ -265,6 +266,7 @@ export function ResultView({ id }: { id: string }) {
             </li>
           ))}
         </ul>
+        <ImprovementPlan test={test} rules={rules} requests={requests} />
       </section>
       )}
 

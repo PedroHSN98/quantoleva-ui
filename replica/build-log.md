@@ -27,3 +27,5 @@ Form takes up to 5 addresses; /comparar shows them in one table with live progre
 - 2026-11-09: runs per test reduced from 3 to 1 (user request). Median/range code kept generic (RUNS_PLANNED in src/lib/types.ts); UI hides runs table, range and "mediana" when there is one run.
 
 - 2026-11-09: download buttons. Result page "Baixar relatório (CSV)" (summary, rules with tips, every file with bytes/KB and phase timings); comparison page "Baixar comparação (CSV)". Built in the browser from data already on screen (src/lib/export-csv.ts); ";" separator, decimal comma, UTF-8 BOM, formula-safe cells. Tests: e2e/download.spec.ts.
+
+- 2026-11-09: improvement plan. Result page button "Como chegar a 100/100" (shows the plan on screen) and "Baixar plano de melhorias" (.txt). Built in the browser from the test own requests (src/lib/improvements.ts, src/components/ImprovementPlan.tsx); items ordered by points they can add. Tests: e2e/plan.spec.ts.
