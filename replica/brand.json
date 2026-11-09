@@ -1,0 +1,7 @@
+{
+  "name": "Quantoleva",
+  "avoid": ["Pingdom", "SolarWinds", "Royal Pingdom"],
+  "domains": ["pingdom.com", "solarwinds.com"],
+  "colors": [],
+  "_note": "Original brand colours were not measured (no reference screenshots), so colors is empty. Add them once you have screenshots, then re-run sweep.py."
+}

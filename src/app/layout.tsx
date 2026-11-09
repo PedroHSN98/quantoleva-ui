@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { BRAND } from "@/lib/brand";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Medidor de Velocidade",
-  description: "Teste a velocidade de carregamento de qualquer página e veja onde o tempo é gasto.",
+  title: `${BRAND.name}: ${BRAND.tagline}`,
+  description: "Carregamos a sua página num navegador de verdade e mostramos o tempo, o peso e cada arquivo pedido.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -13,7 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <header className="border-b border-border">
           <div className="mx-auto flex h-16 max-w-content items-center px-4">
-            <Link href="/" className="text-lg font-semibold">Medidor de Velocidade</Link>
+            <Link href="/" className="text-lg font-semibold">{BRAND.name}</Link>
           </div>
         </header>
         <main className="mx-auto max-w-content px-4 py-8">{children}</main>
