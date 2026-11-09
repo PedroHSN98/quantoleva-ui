@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, Copy, Loader2, Plus, TriangleAlert } from "lucide-react";
+import { CheckCircle2, Copy, Download, Loader2, Plus, TriangleAlert } from "lucide-react";
+import { downloadText, fileNameFor, resultCsv } from "@/lib/export-csv";
 import type { RequestRow, RuleResult, TestRow } from "@/lib/types";
 import { spread } from "@/lib/median";
 import { blockNotice } from "@/lib/block-notice";
@@ -154,7 +155,16 @@ export function ResultView({ id }: { id: string }) {
               <Plus className="h-4 w-4" aria-hidden />
               Testar outro endereço
             </Link>
-            <button type="button" onClick={copyLink} className="inline-flex h-10 items-center gap-2 rounded-md border border-border bg-surface px-4 text-sm font-semibold">
+            <button
+              type="button"
+              disabled={requests.length === 0}
+              onClick={() => downloadText(fileNameFor(test.url), resultCsv(test, rules, requests))}
+              className="inline-flex h-10 items-center gap-2 rounded-md border border-border bg-surface px-4 text-sm font-semibold disabled:opacity-60"
+            >
+              <Download className="h-4 w-4" aria-hidden />
+              Baixar relatório (CSV)
+            </button>
+            <button type="button" onClick={copyLink}className="inline-flex h-10 items-center gap-2 rounded-md border border-border bg-surface px-4 text-sm font-semibold">
               {copied ? <CheckCircle2 className="h-4 w-4 text-success" aria-hidden /> : <Copy className="h-4 w-4" aria-hidden />}
               {copied ? "Link copiado" : "Copiar link"}
             </button>
