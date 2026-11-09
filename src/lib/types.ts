@@ -1,3 +1,7 @@
+import type { RunSummary } from "./median";
+
+export const RUNS_PLANNED = 3;
+
 export type TestStatus = "queued" | "running" | "done" | "failed";
 export type ErrorCode = "invalid_url" | "blocked_target" | "unreachable" | "timeout" | "internal";
 export type ContentType = "html" | "js" | "css" | "image" | "text" | "font" | "other";
@@ -19,6 +23,11 @@ export interface TestRow {
   loadMs?: number;
   pageBytes?: number;
   requestCount?: number;
+  /** how many of the planned runs have finished (progress while running) */
+  runsDone: number;
+  runsPlanned: number;
+  /** every finished run, with the median one flagged. Empty for tests made before runs existed. */
+  runs: RunSummary[];
   createdAt: string;
   finishedAt?: string;
   /** true while the data layer is the fake in-memory one */

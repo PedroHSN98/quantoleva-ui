@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, Copy, Loader2, TriangleAlert } from "lucide-react";
 import type { RequestRow, RuleResult, TestRow } from "@/lib/types";
+import { spread } from "@/lib/median";
 import { Waterfall } from "./Waterfall";
 import { Legend } from "./Legend";
 
@@ -23,10 +24,13 @@ const ERRORS: Record<string, string> = {
   internal: "Erro interno ao rodar o teste. Tente de novo.",
 };
 
-const STEPS: Record<string, string> = {
-  queued: "Aguardando um espaço para o teste…",
-  running: "Abrindo a página e medindo cada arquivo…",
-};
+function stepText(test: TestRow | null) {
+  if (!test || test.status === "queued") return "Aguardando um espaço para o teste…";
+  const n = Math.min(test.runsDone + 1, test.runsPlanned);
+  return `Execução ${n} de ${test.runsPlanned}: abrindo a página e medindo cada arquivo…`;
+}
+
+const seconds = (ms: number) => `${(ms / 1000).toFixed(2)} s`;
 
 export function ResultView({ id }: { id: string }) {
   const [test, setTest] = useState<TestRow | null>(null);
@@ -75,10 +79,10 @@ export function ResultView({ id }: { id: string }) {
     return (
       <div role="status" aria-live="polite" className="mx-auto flex max-w-md flex-col items-center gap-4 py-16 text-center">
         <Loader2 className="h-8 w-8 animate-spin text-accent" aria-hidden />
-        <p>{STEPS[test?.status ?? "queued"]}</p>
+        <p>{stepText(test)}</p>
         {slow && (
           <p className="text-sm text-muted">
-            Páginas pesadas ou lentas podem levar mais de 1 minuto. Pode deixar esta tela aberta: o teste continua até terminar (limite de 5 minutos).
+            Cada teste carrega a página 3 vezes, e páginas pesadas ou lentas levam mais de 1 minuto. Pode deixar esta tela aberta: o teste continua até terminar (limite de 10 minutos no total).
           </p>
         )}
       </div>
@@ -97,10 +101,16 @@ export function ResultView({ id }: { id: string }) {
     );
   }
 
+  const many = test.runs.length > 1;
+  const sp = test.runs.length > 0 ? spread(test.runs) : null;
   const tiles = [
-    { label: "Tempo de carregamento", value: `${((test.loadMs ?? 0) / 1000).toFixed(2)} s` },
-    { label: "Tamanho da página", value: formatBytes(test.pageBytes ?? 0) },
-    { label: "Requisições", value: String(test.requestCount ?? 0) },
+    {
+      label: many ? "Tempo de carregamento (mediana)" : "Tempo de carregamento",
+      value: seconds(test.loadMs ?? 0),
+      hint: sp && many ? `de ${seconds(sp.min)} a ${seconds(sp.max)} em ${test.runs.length} execuções` : undefined,
+    },
+    { label: "Tamanho da página", value: formatBytes(test.pageBytes ?? 0), hint: many ? "da execução mediana" : undefined },
+    { label: "Requisições", value: String(test.requestCount ?? 0), hint: many ? "da execução mediana" : undefined },
   ];
 
   async function copyLink() {
@@ -142,10 +152,54 @@ export function ResultView({ id }: { id: string }) {
             <div key={t.label} className="rounded-md border border-border bg-surface p-4">
               <p className="text-xs text-muted">{t.label}</p>
               <p className="text-xl tabular-nums">{t.value}</p>
+              {t.hint && <p className="text-xs text-muted">{t.hint}</p>}
             </div>
           ))}
         </div>
+
+        {sp?.wide && (
+          <p role="note" className="rounded-md border border-border border-l-4 border-l-warning bg-surface p-3 text-sm">
+            Os tempos variaram bastante entre as execuções ({seconds(sp.min)} a {seconds(sp.max)}). Não confie num número só: rode de novo para confirmar.
+          </p>
+        )}
+        {test.runs.length > 0 && test.runs.length < test.runsPlanned && (
+          <p role="note" className="rounded-md border border-border bg-surface p-3 text-sm">
+            Só {test.runs.length} de {test.runsPlanned} execuções terminaram, então a mediana usa {test.runs.length === 1 ? "esta única execução" : "as que terminaram"}.
+          </p>
+        )}
       </section>
+
+      {many && (
+        <section aria-labelledby="runs" className="space-y-3">
+          <h2 id="runs" className="text-lg">Execuções</h2>
+          <div className="overflow-x-auto rounded-md border border-border">
+            <table className="w-full text-sm">
+              <caption className="sr-only">As execuções deste teste, com a mediana marcada</caption>
+              <thead className="bg-surface text-left text-xs text-muted">
+                <tr>
+                  <th scope="col" className="px-3 py-2">Execução</th>
+                  <th scope="col" className="px-3 py-2 text-right">Tempo</th>
+                  <th scope="col" className="px-3 py-2 text-right">Tamanho</th>
+                  <th scope="col" className="px-3 py-2 text-right">Requisições</th>
+                </tr>
+              </thead>
+              <tbody>
+                {test.runs.map((r) => (
+                  <tr key={r.runNo} className={`border-t border-border ${r.isMedian ? "bg-surface-2 font-semibold" : ""}`}>
+                    <td className="px-3 py-1.5">{r.runNo}{r.isMedian ? " (mediana)" : ""}</td>
+                    <td className="px-3 py-1.5 text-right tabular-nums">{seconds(r.loadMs)}</td>
+                    <td className="px-3 py-1.5 text-right tabular-nums">{formatBytes(r.pageBytes)}</td>
+                    <td className="px-3 py-1.5 text-right tabular-nums">{r.requestCount}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-sm text-muted">
+            A mediana é a execução do meio, quando se ordena pelo tempo. A nota, a lista de dicas e os arquivos abaixo vêm dela.
+          </p>
+        </section>
+      )}
 
       <section aria-labelledby="rules" className="space-y-3">
         <h2 id="rules" className="text-lg">Como melhorar</h2>
@@ -166,7 +220,7 @@ export function ResultView({ id }: { id: string }) {
       </section>
 
       <section aria-labelledby="files" className="space-y-3">
-        <h2 id="files" className="text-lg">Arquivos pedidos</h2>
+        <h2 id="files" className="text-lg">{many ? "Arquivos pedidos (execução mediana)" : "Arquivos pedidos"}</h2>
         <Waterfall requests={requests} />
         <Legend />
       </section>

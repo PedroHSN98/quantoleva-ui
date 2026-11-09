@@ -1,7 +1,7 @@
 // Postgres data layer. Same function signatures as the earlier fake layer, so no screen changed.
 import { createHash, randomBytes } from "node:crypto";
 import { pool } from "./db";
-import type { ContentType, ErrorCode, Location, RequestRow, RuleResult, TestRow } from "./types";
+import { RUNS_PLANNED, type ContentType, type ErrorCode, type Location, type RequestRow, type RuleResult, type TestRow } from "./types";
 
 export function hashIp(ip: string): string {
   const secret = process.env.IP_HASH_SECRET ?? "dev-only-secret";
@@ -19,14 +19,27 @@ export async function listLocations(): Promise<Location[]> {
 export async function getTest(publicId: string): Promise<TestRow | null> {
   const { rows } = await pool().query(
     `select t.public_id, t.url, l.slug as location_slug, t.status, t.error_code, t.grade, t.score,
-            t.load_ms, t.page_bytes, t.request_count, t.created_at, t.finished_at
+            t.load_ms, t.page_bytes, t.request_count, t.created_at, t.finished_at, t.runs_done, t.id
        from tests t join locations l on l.id = t.location_id
       where t.public_id = $1`,
     [publicId],
   );
   const r = rows[0];
   if (!r) return null;
+  const runRows = await pool().query(
+    "select run_no, load_ms, page_bytes, request_count, is_median from test_runs where test_id = $1 order by run_no",
+    [r.id],
+  );
   return {
+    runsDone: r.runs_done,
+    runsPlanned: RUNS_PLANNED,
+    runs: runRows.rows.map((x) => ({
+      runNo: x.run_no,
+      loadMs: x.load_ms,
+      pageBytes: Number(x.page_bytes),
+      requestCount: x.request_count,
+      isMedian: x.is_median,
+    })),
     publicId: r.public_id,
     url: r.url,
     locationSlug: r.location_slug,

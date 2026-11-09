@@ -20,6 +20,7 @@ Rule applied to every line: **only say what exists today.** The angle in `fixes.
 3. Leia o relatório: nota, tempo, peso e a linha do tempo de cada arquivo.
 
 ## 4. Features (all exist today)
+- **Três execuções, mediana e faixa.** Cada teste carrega a página 3 vezes; você vê o tempo mediano e de quanto variou.
 - **Navegador de verdade, sem cache.** Cada teste abre a página como um visitante novo.
 - **Cada arquivo, etapa por etapa.** Bloqueio, DNS, conexão, SSL, envio, espera e recebimento.
 - **Uma nota que explica.** Seis regras, cada uma com pontuação e uma dica quando está abaixo de 90.
@@ -27,7 +28,6 @@ Rule applied to every line: **only say what exists today.** The angle in `fixes.
 - **Sem conta.** Cole, teste, copie o link do resultado.
 
 ## 4b. Em breve (not built, labelled as such)
-- Três execuções por teste, com mediana e faixa de variação.
 - Mais de um local de teste real, lado a lado.
 - Explicação por arquivo do que mudar.
 - Perfil de celular.

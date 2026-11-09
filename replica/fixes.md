@@ -46,6 +46,8 @@ Pricing complaints: none found about the speed test. Nothing for `/replica-launc
 
 Rows added to `replica/features.csv` with `original = no`.
 
+**Status 2026-11-09:** fix 1 (3 runs, median and range) is built. Fixes 2, 3 and 4 are not.
+
 ## Positioning (three options)
 ```
 A. For site owners outside the US who do not trust one number from one place,

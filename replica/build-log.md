@@ -17,3 +17,6 @@ Harder than expected: nothing yet; the real measurement worker and DNS-level SSR
 
 ## 2026-11-09 test pass
 S01-S04, S06 now run on the real backend. 34/34 e2e passing (desktop 1440 + mobile 390), axe WCAG A/AA clean on S01 and S03, no console errors, no 5xx. Screenshots: replica/clone-screens/S03-desktop.png, S03-mobile.png. Bugs B01-B04 fixed, see bugs.md. Not started: S05 (breakdown charts), S07 (history).
+
+## 2026-11-09 median of 3 runs
+Worker runs 3 cold runs, saves each in test_runs, median run feeds grade and waterfall. UI: median tile with range, runs table, variance warning, progress 'Execucao n de 3'. 62/62 e2e (incl. median unit tests M1-M6, F01-R1, F01-R2). Real check: pt.wikipedia.org 953/884/914 ms, median 914.

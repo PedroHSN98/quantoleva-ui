@@ -12,7 +12,7 @@ Blockers, from `replica/backend.md` and the parity report:
 5. Project folder and any repository renamed (still `replica-pingdom`).
 
 ## The honest position today
-What exists: real browser, every file, a grade with six explained rules, no account, one location. The angle in `fixes.md` (where your visitors are, 3 runs with a range) needs two things not built: more than one worker region, and 3-run medians. **Build the 3-run median before launching on that angle**; it is small and has the most evidence. Until then, lead with what is true: no account, every file, honest about variation.
+What exists: real browser, every file, a grade with six explained rules, no account, one location. The angle in `fixes.md` (where your visitors are, 3 runs with a range) needs two things not built: more than one worker region, and 3-run medians. The 3-run median is now built (2026-11-09). Multiple real regions are still missing, so lead with the range and be plain that there is one location. Until then, lead with what is true: no account, every file, honest about variation.
 
 ## Before launch
 - A short beta list. For a free tool, 10 to 20 real users is enough: ask for permission before using any quote.

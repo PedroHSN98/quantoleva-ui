@@ -31,5 +31,9 @@ Scope: anonymous tool. Auth, payments, email: not needed, not built.
 - [ ] `npm audit` run (see build log)
 - [ ] privacy policy: lists host, database provider
 
+## Runs (2026-11-09)
+- Each test runs the browser 3 times in a row (cold). `test_runs` stores every run; the median run (by load time; of an even count, the faster middle one) feeds the grade, rules and waterfall. Migration 004.
+- A later failed run keeps the finished ones; a failed first run fails the test. One shared 10 minute budget for all runs, 5 minutes max per run, lock stale after 15 minutes.
+
 ## Not built (not in scope)
 Auth, accounts and test history, Stripe, email, third-party integrations.

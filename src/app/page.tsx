@@ -12,6 +12,7 @@ const STEPS = [
 ];
 
 const FEATURES = [
+  { title: "Três execuções, mediana e faixa", text: "Cada teste carrega a página 3 vezes. Você vê o tempo mediano e de quanto a 1ª à última variou." },
   { title: "Navegador de verdade, sem cache", text: "Cada teste abre a página como um visitante novo." },
   { title: "Cada arquivo, etapa por etapa", text: "Bloqueio, DNS, conexão, SSL, envio, espera e recebimento." },
   { title: "Uma nota que explica", text: "Seis regras, cada uma com pontuação e uma dica quando está abaixo de 90." },
@@ -19,7 +20,6 @@ const FEATURES = [
 ];
 
 const SOON = [
-  "Três execuções por teste, com mediana e faixa de variação",
   "Mais de um local de teste, lado a lado",
   "Explicação, arquivo por arquivo, do que mudar",
   "Perfil de celular",
@@ -28,7 +28,7 @@ const SOON = [
 const FAQ = [
   {
     q: "Os tempos são iguais aos do meu navegador?",
-    a: "Não. O teste roda num navegador de servidor, sem cache, e os tempos mudam de um teste para outro. Rode mais de uma vez e olhe a tendência.",
+    a: "Não. O teste roda num navegador de servidor, sem cache, e os tempos mudam a cada carregamento. Por isso cada teste carrega a página 3 vezes e mostra a mediana e a faixa. Rode de novo se a faixa vier larga.",
   },
   {
     q: "Por que só um local de teste?",
@@ -59,7 +59,7 @@ export default async function Home() {
         <p>Ferramentas de velocidade costumam testar de um só lugar, e o resultado muda com a distância até o servidor.</p>
         <p>
           O mesmo site também dá tempos diferentes em testes seguidos, e a nota nem sempre diz o que consertar.
-          Por isso mostramos de onde veio cada resultado e o que pesa em cada arquivo.
+          Por isso cada teste carrega a página 3 vezes e mostra a mediana e a faixa, o local de onde veio o resultado e o que pesa em cada arquivo.
         </p>
       </section>
 

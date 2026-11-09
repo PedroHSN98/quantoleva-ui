@@ -4,9 +4,9 @@ import type { ContentType, ErrorCode, RequestRow } from "../src/lib/types";
 
 const SENSITIVE = new Set(["cookie", "set-cookie", "authorization", "proxy-authorization"]);
 const MAX_REQUESTS = 500;
-// Slow pages can take well over a minute. Keep the test running up to 5 minutes before giving up.
-// worker/index.ts treats a lock as stale only after 8 minutes, keep this below that.
-const NAV_TIMEOUT_MS = 300_000;
+// Slow pages can take well over a minute. One run may take up to 5 minutes before giving up.
+// worker/index.ts shares a 10 minute budget between runs and treats a lock as stale after 15.
+export const NAV_TIMEOUT_MS = 300_000;
 
 export class MeasureError extends Error {
   constructor(public code: ErrorCode) {
@@ -58,7 +58,7 @@ function cacheable(h: Record<string, string>): boolean | null {
   return null;
 }
 
-export async function measure(url: string): Promise<Measured> {
+export async function measure(url: string, timeoutMs: number = NAV_TIMEOUT_MS): Promise<Measured> {
   try {
     await assertPublicHost(new URL(url).hostname);
   } catch (e) {
@@ -137,7 +137,7 @@ export async function measure(url: string): Promise<Measured> {
 
     const started = Date.now();
     try {
-      await page.goto(url, { waitUntil: "load", timeout: NAV_TIMEOUT_MS });
+      await page.goto(url, { waitUntil: "load", timeout: timeoutMs });
     } catch (e) {
       if (blocked) throw new MeasureError("blocked_target");
       const msg = (e as Error).message;
