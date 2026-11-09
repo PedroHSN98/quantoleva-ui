@@ -1,6 +1,6 @@
 import type { RunSummary } from "./median";
 
-export const RUNS_PLANNED = 3;
+export const RUNS_PLANNED = 1;
 
 export type TestStatus = "queued" | "running" | "done" | "failed";
 export type ErrorCode = "invalid_url" | "blocked_target" | "unreachable" | "timeout" | "internal";

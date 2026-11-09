@@ -70,8 +70,7 @@ export function BatchView({ ids }: { ids: string[] }) {
             <tr>
               <th scope="col" className="px-3 py-2">Endereço</th>
               <th scope="col" className="px-3 py-2">Estado</th>
-              <th scope="col" className="px-3 py-2 text-right">Tempo (mediana)</th>
-              <th scope="col" className="px-3 py-2 text-right">Faixa</th>
+              <th scope="col" className="px-3 py-2 text-right">Tempo</th>
               <th scope="col" className="px-3 py-2 text-center">Nota</th>
               <th scope="col" className="px-3 py-2 text-right">Tamanho</th>
               <th scope="col" className="px-3 py-2 text-right">Requisições</th>
@@ -81,8 +80,6 @@ export function BatchView({ ids }: { ids: string[] }) {
           <tbody>
             {ids.map((id, i) => {
               const t = list[i];
-              const min = t?.runs.length ? Math.min(...t.runs.map((r) => r.loadMs)) : null;
-              const max = t?.runs.length ? Math.max(...t.runs.map((r) => r.loadMs)) : null;
               return (
                 <tr key={id} className="border-t border-border">
                   <td className="max-w-[260px] px-3 py-2">
@@ -93,7 +90,7 @@ export function BatchView({ ids }: { ids: string[] }) {
                     {t === null && <span className="inline-flex items-center gap-1"><TriangleAlert className="h-4 w-4 text-danger" aria-hidden />Não encontrado</span>}
                     {t && t.status === "queued" && <span>Na fila</span>}
                     {t && t.status === "running" && (
-                      <span className="inline-flex items-center gap-1"><Loader2 className="h-4 w-4 animate-spin" aria-hidden />Execução {Math.min(t.runsDone + 1, t.runsPlanned)} de {t.runsPlanned}</span>
+                      <span className="inline-flex items-center gap-1"><Loader2 className="h-4 w-4 animate-spin" aria-hidden />Medindo</span>
                     )}
                     {t && t.status === "done" && <span className="inline-flex items-center gap-1"><CheckCircle2 className="h-4 w-4 text-success" aria-hidden />Pronto</span>}
                     {t && t.status === "failed" && (
@@ -101,9 +98,6 @@ export function BatchView({ ids }: { ids: string[] }) {
                     )}
                   </td>
                   <td className="px-3 py-2 text-right tabular-nums">{t?.status === "done" ? seconds(t.loadMs ?? 0) : "-"}</td>
-                  <td className="px-3 py-2 text-right tabular-nums">
-                    {t?.status === "done" && min !== null && max !== null && t.runs.length > 1 ? `${seconds(min)} a ${seconds(max)}` : "-"}
-                  </td>
                   <td className={`px-3 py-2 text-center text-lg font-bold ${t?.grade ? GRADE_CLASS[t.grade] : ""}`}>
                     {t?.status === "done" ? <span aria-label={`Nota ${t.grade}, ${t.score} de 100`}>{t.grade}</span> : "-"}
                   </td>
@@ -119,7 +113,7 @@ export function BatchView({ ids }: { ids: string[] }) {
         </table>
       </div>
       <p className="text-sm text-muted">
-        Cada endereço roda 3 vezes; a tabela mostra a execução mediana e a faixa. Sites que bloqueiam acesso de fora do país ou de programas automáticos podem falhar.
+        Cada endereço é medido uma vez, sem cache; rode de novo se o número parecer estranho. Sites que bloqueiam acesso de fora do país ou de programas automáticos podem falhar.
       </p>
     </div>
   );

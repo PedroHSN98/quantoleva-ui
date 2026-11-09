@@ -26,6 +26,7 @@ const ERRORS: Record<string, string> = {
 
 function stepText(test: TestRow | null) {
   if (!test || test.status === "queued") return "Aguardando um espaço para o teste…";
+  if (test.runsPlanned === 1) return "Abrindo a página e medindo cada arquivo…";
   const n = Math.min(test.runsDone + 1, test.runsPlanned);
   return `Execução ${n} de ${test.runsPlanned}: abrindo a página e medindo cada arquivo…`;
 }
@@ -82,7 +83,7 @@ export function ResultView({ id }: { id: string }) {
         <p>{stepText(test)}</p>
         {slow && (
           <p className="text-sm text-muted">
-            Cada teste carrega a página 3 vezes, e páginas pesadas ou lentas levam mais de 1 minuto. Pode deixar esta tela aberta: o teste continua até terminar (limite de 10 minutos no total).
+            Páginas pesadas ou lentas levam mais de 1 minuto. Pode deixar esta tela aberta: o teste continua até terminar (limite de 10 minutos no total).
           </p>
         )}
       </div>

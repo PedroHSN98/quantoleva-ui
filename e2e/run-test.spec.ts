@@ -26,23 +26,14 @@ test.describe("F01 run a test, F02 inspect a file, F04 share", () => {
     await page.screenshot({ path: `replica/clone-screens/S03-${info.project.name}.png`, fullPage: true });
   });
 
-  test("F01-R1 three runs: median tile, range, and a runs table with the median marked", async ({ page }) => {
+  test("F01-R1 one run: plain load time, no median, range or runs table", async ({ page }) => {
     await runTest(page, "example.com");
     await expect(page.getByRole("heading", { name: "Resultado" })).toBeVisible();
-    await expect(page.getByText("Tempo de carregamento (mediana)")).toBeVisible();
-    await expect(page.getByText(/de \d+\.\d\d s a \d+\.\d\d s em 3 execuções/)).toBeVisible();
-    const rows = page.getByRole("table", { name: /execuções deste teste/ }).locator("tbody tr");
-    await expect(rows).toHaveCount(3);
-    await expect(page.getByRole("cell", { name: /\(mediana\)/ })).toHaveCount(1);
-    await expect(page.getByRole("heading", { name: "Arquivos pedidos (execução mediana)" })).toBeVisible();
-  });
-
-  test("F01-R2 the median row's time equals the headline time", async ({ page }) => {
-    await runTest(page, "example.com");
-    await expect(page.getByRole("heading", { name: "Resultado" })).toBeVisible();
-    const headline = await page.getByText("Tempo de carregamento (mediana)").locator("xpath=following-sibling::p[1]").innerText();
-    const medianRow = page.getByRole("row").filter({ hasText: "(mediana)" });
-    await expect(medianRow).toContainText(headline);
+    await expect(page.locator("p.text-xs", { hasText: /^Tempo de carregamento$/ })).toBeVisible();
+    await expect(page.getByText(/mediana/i)).toHaveCount(0);
+    await expect(page.getByText(/em \d+ execuções/)).toHaveCount(0);
+    await expect(page.getByRole("table", { name: /execuções deste teste/ })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Arquivos pedidos", exact: true })).toBeVisible();
   });
 
   test("F01-A2 no accessibility violations on result", async ({ page }) => {

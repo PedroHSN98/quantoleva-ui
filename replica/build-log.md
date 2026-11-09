@@ -23,3 +23,5 @@ Worker runs 3 cold runs, saves each in test_runs, median run feeds grade and wat
 
 ## 2026-11-09 several addresses at once
 Form takes up to 5 addresses; /comparar shows them in one table with live progress; worker runs 3 tests at a time; "Testar outro endereco" button on results and on the comparison page; first-response tile. 90/90 e2e. Real check: 5 government sites in 17 s, 3 overlapped.
+
+- 2026-11-09: runs per test reduced from 3 to 1 (user request). Median/range code kept generic (RUNS_PLANNED in src/lib/types.ts); UI hides runs table, range and "mediana" when there is one run.

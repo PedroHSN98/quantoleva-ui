@@ -32,7 +32,7 @@ test.describe("landing sections on /", () => {
     const first = page.getByText("Os tempos são iguais aos do meu navegador?");
     await first.focus();
     await page.keyboard.press("Enter");
-    await expect(page.getByText(/Rode de novo se a faixa vier larga/)).toBeVisible();
+    await expect(page.getByText(/Rode de novo para confirmar/)).toBeVisible();
   });
 
   test("L5 final button scrolls to the form", async ({ page }) => {

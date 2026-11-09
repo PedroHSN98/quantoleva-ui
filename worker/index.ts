@@ -1,9 +1,10 @@
 import { Pool } from "pg";
 import { evaluateRules, gradeFromRules } from "../src/lib/grading";
 import { medianIndex } from "../src/lib/median";
+import { RUNS_PLANNED } from "../src/lib/types";
 import { MeasureError, NAV_TIMEOUT_MS, measure, type Measured } from "./measure";
 
-const RUNS = 3;
+const RUNS = RUNS_PLANNED;
 const TOTAL_BUDGET_MS = 10 * 60_000; // all runs of one test together
 const MIN_REMAINING_MS = 30_000; // do not start another run with less than this left
 
