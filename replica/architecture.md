@@ -39,7 +39,7 @@ No third-party APIs, no webhooks.
 
 ## Parts that bite
 - **SSRF:** resolve DNS, reject private, loopback, link-local and metadata IPs (v4 and v6), re-check on every redirect and sub-request, http/https only, ports 80/443. Run Chromium in a locked-down container with no internal network access.
-- **Abuse and cost:** rate limit per IP hash (e.g. 5 tests per 10 min), global concurrency cap, 60 s hard timeout, max body size, max requests per page.
+- **Abuse and cost:** rate limit per IP hash (e.g. 5 tests per 10 min), global concurrency cap, 5 min limit per test (slow pages keep running until then), max body size, max requests per page.
 - **Measurement accuracy:** per-request timings from CDP/Playwright network events; fixed viewport, cold cache, documented throttling. Results vary, so show test time and location.
 - **Grading:** original rule set (compression, cache headers, request count, image weight, redirects, blocking scripts), each scored 0-100, weighted to a grade. Not Pingdom's formula.
 - **Idempotency:** worker completion safe to run twice (upsert on (test_id, seq)).

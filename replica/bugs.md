@@ -13,7 +13,7 @@ Only reproduced issues. Severity: S1 data loss/security/core blocked, S2 feature
 ## B02 (S3) No feedback when the queue stalls
 - **Steps:** worker stops after a test is created.
 - **Actual:** the waiting message never changes.
-- **Fix:** after 45 s the waiting screen adds "Está demorando mais que o normal" with a retry link.
+- **Fix:** after 20 s the waiting screen adds "Está demorando mais que o normal" with a retry link.
 - **Status:** fixed, not covered by an automated test (F01-E10).
 
 ## B03 (S3) Footer still says results are simulated

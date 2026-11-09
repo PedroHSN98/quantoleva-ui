@@ -6,7 +6,7 @@ Scope: anonymous tool. Auth, payments, email: not needed, not built.
 - Postgres 16 via `docker-compose.yml` (dev only, port 5433). `npm run db:up`, `npm run db:migrate`.
 - Migrations in `migrations/` (001 schema + seed locations, 002 rule name), applied by `scripts/migrate.ts`, tracked in `schema_migrations`.
 - Data layer `src/lib/data.ts` on Postgres (replaced the fake one, same signatures).
-- Job queue in the `jobs` table, claimed with `FOR UPDATE SKIP LOCKED`, stale lock after 2 min, 3 attempts, reaper fails dead tests.
+- Job queue in the `jobs` table, claimed with `FOR UPDATE SKIP LOCKED`, stale lock after 8 min (longer than the longest run), 3 attempts, reaper fails dead tests.
 - Worker `worker/` (`npm run worker`): Playwright Chromium, per-request timings from CDP, SSRF guard, saves in one transaction, idempotent (`on conflict do nothing`).
 - Verified with real runs: example.com (A, 2 requests), pt.wikipedia.org (47 requests, redirect shown), `localtest.me` (resolves to 127.0.0.1 -> blocked_target), unknown domain (unreachable), 6th test in 10 min -> HTTP 429.
 
@@ -27,7 +27,7 @@ Scope: anonymous tool. Auth, payments, email: not needed, not built.
 - [ ] cleanup job (delete tests older than 30 days) not written
 - [ ] global concurrency cap: worker is single-threaded (1 test at a time), so effectively capped
 - [ ] backups: dev DB only; enable host backups at deploy
-- [ ] timeout error path (45 s) not exercised
+- [ ] timeout error path (5 min) not exercised; 75 s slow page verified in isolation only
 - [ ] `npm audit` run (see build log)
 - [ ] privacy policy: lists host, database provider
 

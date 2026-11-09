@@ -18,7 +18,7 @@ function formatBytes(b: number) {
 
 const ERRORS: Record<string, string> = {
   unreachable: "Não conseguimos abrir essa página. Confira o endereço e se o site está no ar.",
-  timeout: "A página demorou demais para responder (mais de 60 s).",
+  timeout: "A página não terminou de carregar em 5 minutos, então paramos o teste.",
   blocked_target: "Esse endereço não pode ser testado.",
   internal: "Erro interno ao rodar o teste. Tente de novo.",
 };
@@ -37,7 +37,7 @@ export function ResultView({ id }: { id: string }) {
   const [slow, setSlow] = useState(false);
 
   useEffect(() => {
-    const t = setTimeout(() => setSlow(true), 45_000);
+    const t = setTimeout(() => setSlow(true), 20_000);
     return () => clearTimeout(t);
   }, []);
 
@@ -78,7 +78,7 @@ export function ResultView({ id }: { id: string }) {
         <p>{STEPS[test?.status ?? "queued"]}</p>
         {slow && (
           <p className="text-sm text-muted">
-            Está demorando mais que o normal. Você pode esperar ou <Link href="/" className="underline">tentar de novo</Link>.
+            Páginas pesadas ou lentas podem levar mais de 1 minuto. Pode deixar esta tela aberta: o teste continua até terminar (limite de 5 minutos).
           </p>
         )}
       </div>

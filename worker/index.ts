@@ -13,14 +13,16 @@ process.on("SIGTERM", () => { stopping = true; });
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-/** Claim one job for this location. SKIP LOCKED keeps two workers from taking the same one. */
+/** Claim one job for this location. SKIP LOCKED keeps two workers from taking the same one.
+ *  A lock only counts as stale after 8 minutes: longer than the longest allowed run
+ *  (5 min navigation + idle wait + saving), so a slow page is never taken over mid-test. */
 async function claim() {
   const { rows } = await pool.query(
     `update jobs set locked_at = now(), attempts = attempts + 1
       where id = (
         select j.id from jobs j join locations l on l.id = j.location_id
          where l.slug = $1 and j.attempts < 3
-           and (j.locked_at is null or j.locked_at < now() - interval '2 minutes')
+           and (j.locked_at is null or j.locked_at < now() - interval '8 minutes')
          order by j.created_at
          for update of j skip locked limit 1)
       returning id, test_id`,
@@ -32,7 +34,7 @@ async function claim() {
 /** Jobs that ran out of attempts (worker crashed mid-test): fail the test, drop the job. */
 async function reap() {
   await pool.query(
-    `with dead as (delete from jobs where attempts >= 3 and locked_at < now() - interval '2 minutes' returning test_id)
+    `with dead as (delete from jobs where attempts >= 3 and locked_at < now() - interval '8 minutes' returning test_id)
      update tests set status = 'failed', error_code = 'internal', finished_at = now(), updated_at = now()
       where id in (select test_id from dead) and status in ('queued','running')`,
   );
@@ -111,14 +113,18 @@ async function run(job: { id: string; test_id: string }) {
 
 async function main() {
   console.log(`worker started, location=${location}`);
+  // Heartbeat on its own timer, so the location stays listed while a long test is running.
+  const beat = () => pool.query("update locations set worker_seen_at = now() where slug = $1", [location]).catch(console.error);
+  await beat();
+  const timer = setInterval(beat, 30_000);
   let lastReap = 0;
   while (!stopping) {
-    await pool.query("update locations set worker_seen_at = now() where slug = $1", [location]).catch(console.error);
     if (Date.now() - lastReap > 60_000) { await reap().catch(console.error); lastReap = Date.now(); }
     const job = await claim().catch((e) => { console.error(e); return undefined; });
     if (!job) { await sleep(1000); continue; }
     await run(job).catch((e) => console.error("run error", e));
   }
+  clearInterval(timer);
   await pool.end();
 }
 

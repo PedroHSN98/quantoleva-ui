@@ -4,7 +4,9 @@ import type { ContentType, ErrorCode, RequestRow } from "../src/lib/types";
 
 const SENSITIVE = new Set(["cookie", "set-cookie", "authorization", "proxy-authorization"]);
 const MAX_REQUESTS = 500;
-const NAV_TIMEOUT_MS = 45_000;
+// Slow pages can take well over a minute. Keep the test running up to 5 minutes before giving up.
+// worker/index.ts treats a lock as stale only after 8 minutes, keep this below that.
+const NAV_TIMEOUT_MS = 300_000;
 
 export class MeasureError extends Error {
   constructor(public code: ErrorCode) {
@@ -144,7 +146,7 @@ export async function measure(url: string): Promise<Measured> {
       throw new MeasureError("unreachable");
     }
     const loadMs = Date.now() - started;
-    await page.waitForLoadState("networkidle", { timeout: 5_000 }).catch(() => {});
+    await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {});
     for (const en of entries.values()) done.push(en); // anything still open
 
     const finalUrl = page.url();

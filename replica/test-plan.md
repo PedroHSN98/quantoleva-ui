@@ -19,8 +19,8 @@ Result column: A = automated and passing, M = manual / verified by hand earlier,
 | F01-E6 | no horizontal page scroll at 390 and 1440 | A |
 | F01-E7 | very long URL (2049+ chars) rejected | T |
 | F01-E8 | URL with accents / emoji host (punycode) | T |
-| F01-E9 | slow site (> 45 s) gives timeout error | T |
-| F01-E10 | worker down: user is told, not left waiting | A (home shows "no server" alert when no worker; result shows slow hint after 45 s, hint not covered) |
+| F01-E9 | slow site (> 5 min) gives timeout error | T |
+| F01-E10 | worker down: user is told, not left waiting | A (home shows "no server" alert when no worker; result shows slow hint after 20 s, hint not covered) |
 | F01-N1 | 127.0.0.1 refused | A |
 | F01-N2 | file:// refused | A |
 | F01-N3 | unknown domain shows unreachable | A |
