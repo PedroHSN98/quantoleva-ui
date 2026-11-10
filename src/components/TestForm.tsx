@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Plus, TriangleAlert, X } from "lucide-react";
+import { ArrowRight, Globe, Loader2, MapPin, Plus, TriangleAlert, X } from "lucide-react";
 import type { Location } from "@/lib/types";
 import { MAX_URLS_PER_SUBMIT } from "@/lib/limits";
 
@@ -54,56 +54,62 @@ export function TestForm({ locations }: { locations: Location[] }) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4 text-left" noValidate>
-      {urls.map((value, i) => (
-        <div key={i} className="space-y-1">
-          <label htmlFor={`url-${i}`} className="text-sm font-semibold">{labelFor(i)}</label>
-          <div className="flex gap-2">
-            <input
-              id={`url-${i}`} type="url" inputMode="url" autoComplete="url" required={i === 0}
-              value={value} onChange={(e) => setUrl(i, e.target.value)}
-              placeholder="https://exemplo.com.br"
-              aria-invalid={error && (error.index === undefined ? i === 0 : error.index === i) ? true : undefined}
-              aria-describedby={error ? "form-error" : undefined}
-              className="h-12 w-full rounded-md border border-border-input bg-bg px-4 text-base"
-            />
-            {i > 0 && (
-              <button
-                type="button" onClick={() => setUrls((u) => u.filter((_, j) => j !== i))}
-                aria-label={`Remover ${labelFor(i).toLowerCase()}`}
-                className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-border bg-surface"
-              >
-                <X className="h-4 w-4" aria-hidden />
-              </button>
-            )}
+    <form onSubmit={onSubmit} className="space-y-5 rounded-xl border border-border bg-bg p-5 text-left text-text shadow-pop sm:p-7" noValidate>
+      <div className="space-y-4">
+        {urls.map((value, i) => (
+          <div key={i} className="space-y-1.5">
+            <label htmlFor={`url-${i}`} className="text-sm font-semibold">{labelFor(i)}</label>
+            <div className="flex gap-2">
+              <div className="relative w-full">
+                <Globe className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted" aria-hidden />
+                <input
+                  id={`url-${i}`} type="url" inputMode="url" autoComplete="url" required={i === 0}
+                  value={value} onChange={(e) => setUrl(i, e.target.value)}
+                  placeholder="https://exemplo.com.br"
+                  aria-invalid={error && (error.index === undefined ? i === 0 : error.index === i) ? true : undefined}
+                  aria-describedby={error ? "form-error" : undefined}
+                  className="h-14 w-full rounded-md border border-border-input bg-bg pl-12 pr-4 text-base transition-shadow duration-fast placeholder:text-muted focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+                />
+              </div>
+              {i > 0 && (
+                <button
+                  type="button" onClick={() => setUrls((u) => u.filter((_, j) => j !== i))}
+                  aria-label={`Remover ${labelFor(i).toLowerCase()}`}
+                  className="btn-secondary h-14 w-14 shrink-0"
+                >
+                  <X className="h-4 w-4" aria-hidden />
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
 
-      {urls.length < MAX_URLS_PER_SUBMIT && (
-        <button
-          type="button" onClick={() => setUrls((u) => [...u, ""])}
-          className="inline-flex h-10 items-center gap-2 rounded-md border border-border bg-surface px-4 text-sm font-semibold"
-        >
-          <Plus className="h-4 w-4" aria-hidden />
-          Adicionar outro endereço
-        </button>
-      )}
-      {urls.length > 1 && (
-        <p className="text-sm text-muted">Os endereços são testados ao mesmo tempo e comparados numa tela só.</p>
-      )}
-
-      <div className="space-y-1">
-        <label htmlFor="location" className="text-sm font-semibold">Testar a partir de</label>
-        <select
-          id="location" value={location} onChange={(e) => setLocation(e.target.value)}
-          className="h-12 w-full rounded-md border border-border-input bg-bg px-3 text-base"
-        >
-          {locations.map((l) => (
-            <option key={l.slug} value={l.slug}>{l.name} ({l.region})</option>
-          ))}
-        </select>
+        {urls.length < MAX_URLS_PER_SUBMIT && (
+          <button type="button" onClick={() => setUrls((u) => [...u, ""])} className="btn-secondary h-10 px-4 text-sm">
+            <Plus className="h-4 w-4" aria-hidden />
+            Adicionar outro endereço
+          </button>
+        )}
+        {urls.length > 1 && (
+          <p className="text-sm text-muted">Os endereços são testados ao mesmo tempo e comparados numa tela só.</p>
+        )}
       </div>
+
+      <div className="space-y-1.5">
+        <label htmlFor="location" className="text-sm font-semibold">Testar a partir de</label>
+        <div className="relative">
+          <MapPin className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted" aria-hidden />
+          <select
+            id="location" value={location} onChange={(e) => setLocation(e.target.value)}
+            className="h-12 w-full rounded-md border border-border-input bg-bg pl-12 pr-3 text-base focus:border-accent focus:shadow-[0_0_0_3px_var(--accent-soft)]"
+          >
+            {locations.map((l) => (
+              <option key={l.slug} value={l.slug}>{l.name} ({l.region})</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       {locations.length === 0 && (
         <div role="alert" className="flex items-start gap-2 rounded-md border border-border border-l-4 border-l-danger bg-surface p-3 text-sm">
           <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-danger" aria-hidden />
@@ -116,14 +122,16 @@ export function TestForm({ locations }: { locations: Location[] }) {
           <span>{error.index !== undefined && urls.length > 1 ? `${labelFor(error.index)}: ` : ""}{error.text}</span>
         </div>
       )}
+
       <button
         type="submit" aria-busy={loading}
-        className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-md bg-accent px-6 text-base font-semibold text-on-accent disabled:opacity-70"
+        className="btn-primary h-14 w-full px-6 text-base disabled:opacity-70"
         aria-disabled={loading}
         disabled={locations.length === 0}
       >
-        {loading && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
+        {loading ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden /> : null}
         {urls.length > 1 ? "Iniciar testes" : "Iniciar teste"}
+        {!loading && <ArrowRight className="h-5 w-5" aria-hidden />}
       </button>
     </form>
   );

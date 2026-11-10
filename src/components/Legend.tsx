@@ -17,10 +17,10 @@ const STATUS = [
 
 export function Legend() {
   return (
-    <div className="grid gap-6 text-sm sm:grid-cols-2">
+    <div className="grid gap-6 rounded-lg border border-border bg-bg p-5 text-sm shadow-card sm:grid-cols-2 sm:p-6">
       <div>
-        <h3 className="mb-2 font-semibold">Etapas de cada requisição</h3>
-        <ul className="space-y-1">
+        <h3 className="mb-3 text-sm font-semibold">Etapas de cada requisição</h3>
+        <ul className="grid grid-cols-2 gap-x-4 gap-y-2">
           {PHASES.map((p) => (
             <li key={p.key} className="flex items-center gap-2">
               <span className={`h-3 w-6 rounded-sm ${p.cls}`} aria-hidden />
@@ -30,8 +30,8 @@ export function Legend() {
         </ul>
       </div>
       <div>
-        <h3 className="mb-2 font-semibold">Códigos de resposta</h3>
-        <ul className="space-y-1">
+        <h3 className="mb-3 text-sm font-semibold">Códigos de resposta</h3>
+        <ul className="space-y-2">
           {STATUS.map((s) => (
             <li key={s.label} className="flex items-center gap-2">
               <span className={`h-3 w-3 rounded-pill ${s.cls}`} aria-hidden />

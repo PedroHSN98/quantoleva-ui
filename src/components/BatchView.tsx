@@ -53,21 +53,21 @@ export function BatchView({ ids }: { ids: string[] }) {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl">Comparação de {ids.length} endereços</h1>
+          <h1 className="text-3xl font-extrabold">Comparação de {ids.length} endereços</h1>
           <p role="status" aria-live="polite" className="text-sm text-muted">
             {allDone ? "Todos os testes terminaram." : `${doneCount} de ${ids.length} terminaram. Os testes rodam ao mesmo tempo.`}
           </p>
         </div>
         {allDone && (
           <div className="flex flex-wrap gap-2">
-            <Link href="/#teste" className="inline-flex h-10 items-center gap-2 rounded-md bg-accent px-4 text-sm font-semibold text-on-accent">
+            <Link href="/#teste" className="btn-primary h-10 px-4 text-sm">
               <Plus className="h-4 w-4" aria-hidden />
               Testar outros endereços
             </Link>
             <button
               type="button"
               onClick={() => downloadText(`comparacao-${new Date().toISOString().slice(0, 10)}.csv`, batchCsv(list, window.location.origin))}
-              className="inline-flex h-10 items-center gap-2 rounded-md border border-border bg-surface px-4 text-sm font-semibold"
+              className="btn-secondary h-10 px-4 text-sm"
             >
               <Download className="h-4 w-4" aria-hidden />
               Baixar comparação (CSV)
@@ -76,26 +76,26 @@ export function BatchView({ ids }: { ids: string[] }) {
         )}
       </div>
 
-      <div className="overflow-x-auto rounded-md border border-border">
+      <div className="overflow-x-auto rounded-lg border border-border bg-bg shadow-card">
         <table className="w-full min-w-[760px] text-sm">
           <caption className="sr-only">Resultado de cada endereço testado</caption>
           <thead className="bg-surface text-left text-xs text-muted">
             <tr>
-              <th scope="col" className="px-3 py-2">Endereço</th>
-              <th scope="col" className="px-3 py-2">Estado</th>
-              <th scope="col" className="px-3 py-2 text-right">Carregou em</th>
-              <th scope="col" className="px-3 py-2 text-right">Rede parada</th>
-              <th scope="col" className="px-3 py-2 text-center">Nota</th>
-              <th scope="col" className="px-3 py-2 text-right">Tamanho</th>
-              <th scope="col" className="px-3 py-2 text-right">Requisições</th>
-              <th scope="col" className="px-3 py-2"><span className="sr-only">Detalhes</span></th>
+              <th scope="col" className="px-3 py-3">Endereço</th>
+              <th scope="col" className="px-3 py-3">Estado</th>
+              <th scope="col" className="px-3 py-3 text-right">Carregou em</th>
+              <th scope="col" className="px-3 py-3 text-right">Rede parada</th>
+              <th scope="col" className="px-3 py-3 text-center">Nota</th>
+              <th scope="col" className="px-3 py-3 text-right">Tamanho</th>
+              <th scope="col" className="px-3 py-3 text-right">Requisições</th>
+              <th scope="col" className="px-3 py-3"><span className="sr-only">Detalhes</span></th>
             </tr>
           </thead>
           <tbody>
             {ids.map((id, i) => {
               const t = list[i];
               return (
-                <tr key={id} className="border-t border-border">
+                <tr key={id} className="border-t border-border transition-colors duration-fast hover:bg-surface">
                   <td className="max-w-[260px] px-3 py-2">
                     <span className="block truncate font-mono text-xs" title={t?.url}>{t ? t.url.replace(/^https?:\/\//, "") : "…"}</span>
                   </td>
@@ -116,8 +116,15 @@ export function BatchView({ ids }: { ids: string[] }) {
                   </td>
                   <td className="px-3 py-2 text-right tabular-nums">{t?.status === "done" ? seconds(t.loadMs ?? 0) : "-"}</td>
                   <td className="px-3 py-2 text-right tabular-nums">{t?.status === "done" ? (idleText(t.idleMs, t.idleReached, t.loadMs)?.value ?? "-") : "-"}</td>
-                  <td className={`px-3 py-2 text-center text-lg font-bold ${t?.grade ? GRADE_CLASS[t.grade] : ""}`}>
-                    {t?.status === "done" && !blockNotice(t.docStatus) ? <span aria-label={`Nota ${t.grade}, ${t.score} de 100`}>{t.grade}</span> : "-"}
+                  <td className="px-3 py-2 text-center">
+                    {t?.status === "done" && !blockNotice(t.docStatus) ? (
+                      <span
+                        aria-label={`Nota ${t.grade}, ${t.score} de 100`}
+                        className={`inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface text-lg font-extrabold ${t.grade ? GRADE_CLASS[t.grade] : ""}`}
+                      >
+                        {t.grade}
+                      </span>
+                    ) : "-"}
                   </td>
                   <td className="px-3 py-2 text-right tabular-nums">{t?.status === "done" ? formatBytes(t.pageBytes ?? 0) : "-"}</td>
                   <td className="px-3 py-2 text-right tabular-nums">{t?.status === "done" ? t.requestCount : "-"}</td>

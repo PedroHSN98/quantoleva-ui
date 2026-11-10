@@ -25,7 +25,7 @@ export function ImprovementPlan({ test, rules, requests }: { test: TestRow; rule
           aria-controls="plano"
           disabled={!ready}
           onClick={() => setOpen((v) => !v)}
-          className="inline-flex h-10 items-center gap-2 rounded-md bg-accent px-4 text-sm font-semibold text-on-accent disabled:opacity-60"
+          className="btn-primary h-10 px-4 text-sm disabled:opacity-60"
         >
           <Lightbulb className="h-4 w-4" aria-hidden />
           Como chegar a 100/100
@@ -35,7 +35,7 @@ export function ImprovementPlan({ test, rules, requests }: { test: TestRow; rule
           type="button"
           disabled={!ready}
           onClick={() => downloadText("plano-" + fileNameFor(test.url, "txt"),"﻿" + planText(test.url, plan), "text/plain;charset=utf-8")}
-          className="inline-flex h-10 items-center gap-2 rounded-md border border-border bg-surface px-4 text-sm font-semibold disabled:opacity-60"
+          className="btn-secondary h-10 px-4 text-sm disabled:opacity-60"
         >
           <Download className="h-4 w-4" aria-hidden />
           Baixar plano de melhorias

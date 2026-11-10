@@ -8,9 +8,19 @@
   --text-muted: #5b6470;
   --accent: #0b6e69;
   --on-accent: #ffffff;
+  --accent-strong: #085a56;
+  --accent-soft: #e4f2f0;
   --danger: #c62f2f;
   --success: #1f7a4d;
   --warning: #8a5a00;
+
+  /* dark band used by the header hero and the closing call to action */
+  --ink: #0a2927;
+  --ink-2: #103a37;
+  --ink-border: #25605b;
+  --on-ink: #ffffff;
+  --on-ink-muted: #aacdc9;
+  --accent-on-ink: #5fd9cc;
 
   --grade-a: #1f7a4d;
   --grade-b: #4d7a1f;
@@ -32,15 +42,17 @@
   --status-4xx: #c62f2f;
   --status-5xx: #7a1d6e;
 
-  --font-sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-sans: "Inter Variable", Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
+  --radius-xl: 24px;
   --radius-pill: 999px;
 
-  --shadow-card: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.10);
+  --shadow-card: 0 1px 2px rgba(16,24,40,.05), 0 1px 3px rgba(16,24,40,.08);
+  --shadow-lift: 0 4px 6px -2px rgba(16,24,40,.05), 0 12px 24px -6px rgba(16,24,40,.12);
   --shadow-pop: 0 12px 32px rgba(16,24,40,.16);
 
   --motion-fast: 120ms;

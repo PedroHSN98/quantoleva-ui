@@ -29,16 +29,16 @@ export function Waterfall({ requests }: { requests: RequestRow[] }) {
   const total = Math.max(1, ...requests.map((r) => r.startMs + PHASES.reduce((s, p) => s + r[p.key], 0)));
 
   return (
-    <div className="overflow-x-auto rounded-md border border-border">
+    <div className="max-h-[70vh] overflow-auto rounded-lg border border-border bg-bg shadow-card">
       <table className="w-full min-w-[720px] text-sm">
         <caption className="sr-only">Arquivos pedidos pela página, com a linha do tempo de cada um</caption>
-        <thead className="bg-surface text-left text-xs text-muted">
+        <thead className="text-left text-xs text-muted">
           <tr>
-            <th scope="col" className="sticky left-0 bg-surface px-3 py-2">Arquivo</th>
-            <th scope="col" className="px-3 py-2">Tipo</th>
-            <th scope="col" className="px-3 py-2">Código</th>
-            <th scope="col" className="px-3 py-2 text-right">Tamanho</th>
-            <th scope="col" className="w-[40%] px-3 py-2">Linha do tempo ({total} ms)</th>
+            <th scope="col" className="sticky left-0 top-0 z-20 bg-surface px-3 py-2.5">Arquivo</th>
+            <th scope="col" className="sticky top-0 z-10 bg-surface px-3 py-2.5">Tipo</th>
+            <th scope="col" className="sticky top-0 z-10 bg-surface px-3 py-2.5">Código</th>
+            <th scope="col" className="sticky top-0 z-10 bg-surface px-3 py-2.5 text-right">Tamanho</th>
+            <th scope="col" className="sticky top-0 z-10 w-[40%] bg-surface px-3 py-2.5">Linha do tempo ({total} ms)</th>
           </tr>
         </thead>
         <tbody>
@@ -48,8 +48,8 @@ export function Waterfall({ requests }: { requests: RequestRow[] }) {
             const duration = PHASES.reduce((s, p) => s + r[p.key], 0);
             return (
               <Fragment key={r.seq}>
-                <tr className="border-t border-border hover:bg-surface">
-                  <td className="sticky left-0 max-w-[260px] bg-bg px-3 py-1.5">
+                <tr className="group/row border-t border-border transition-colors duration-fast hover:bg-surface">
+                  <td className="sticky left-0 max-w-[260px] bg-bg px-3 py-1.5 group-hover/row:bg-surface">
                     <button
                       type="button" aria-expanded={expanded}
                       onClick={() => setOpen(expanded ? null : r.seq)}

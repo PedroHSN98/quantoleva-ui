@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BatchView } from "@/components/BatchView";
+import { PageShell } from "@/components/PageShell";
 import { MAX_URLS_PER_SUBMIT } from "@/lib/limits";
 
 export default async function Compare({ searchParams }: { searchParams: Promise<{ ids?: string }> }) {
@@ -8,12 +9,18 @@ export default async function Compare({ searchParams }: { searchParams: Promise<
 
   if (ids.length === 0) {
     return (
-      <div className="mx-auto max-w-md space-y-4 text-center">
-        <h1 className="text-xl">Nenhum teste para comparar</h1>
-        <p className="text-muted">O link está incompleto.</p>
-        <Link href="/" className="inline-block rounded-md bg-accent px-6 py-3 font-semibold text-on-accent">Fazer um teste</Link>
-      </div>
+      <PageShell>
+        <div className="mx-auto max-w-md space-y-4 py-10 text-center">
+          <h1 className="text-xl">Nenhum teste para comparar</h1>
+          <p className="text-muted">O link está incompleto.</p>
+          <Link href="/" className="btn-primary h-12 px-6">Fazer um teste</Link>
+        </div>
+      </PageShell>
     );
   }
-  return <BatchView ids={ids} />;
+  return (
+    <PageShell>
+      <BatchView ids={ids} />
+    </PageShell>
+  );
 }
