@@ -5,7 +5,7 @@ import { Braces, ChevronDown, File, FileCode, FileText, Image as ImageIcon, Pale
 import type { ContentType, RequestRow } from "@/lib/types";
 import { PHASES } from "./Legend";
 
-const ICONS: Record<ContentType, { Icon: typeof File; label: string }> = {
+export const ICONS: Record<ContentType, { Icon: typeof File; label: string }> = {
   html: { Icon: FileCode, label: "HTML" },
   js: { Icon: Braces, label: "JavaScript" },
   css: { Icon: Palette, label: "CSS" },
@@ -24,9 +24,12 @@ function statusClass(code: number) {
 
 const fmtBytes = (b: number) => (b >= 1048576 ? `${(b / 1048576).toFixed(2)} MB` : `${(b / 1024).toFixed(1)} KB`);
 
-export function Waterfall({ requests }: { requests: RequestRow[] }) {
+/** `scaleMs`: the timeline length to draw against. When the list is filtered, the caller passes the length of the
+ *  whole page so bars keep the same position and width they had before filtering. */
+export function Waterfall({ requests, scaleMs }: { requests: RequestRow[]; scaleMs?: number }) {
   const [open, setOpen] = useState<number | null>(null);
-  const total = Math.max(1, ...requests.map((r) => r.startMs + PHASES.reduce((s, p) => s + r[p.key], 0)));
+  const total = scaleMs ?? Math.max(1, ...requests.map((r) => r.startMs + PHASES.reduce((s, p) => s + r[p.key], 0)));
+  const maxBytes = Math.max(1, ...requests.map((r) => r.sizeBytes));
 
   return (
     <div className="max-h-[70vh] overflow-auto rounded-lg border border-border bg-bg shadow-card">
@@ -68,7 +71,12 @@ export function Waterfall({ requests }: { requests: RequestRow[] }) {
                       {r.statusCode}
                     </span>
                   </td>
-                  <td className="px-3 py-1.5 text-right tabular-nums">{fmtBytes(r.sizeBytes)}</td>
+                  <td className="px-3 py-1.5 text-right tabular-nums">
+                    {fmtBytes(r.sizeBytes)}
+                    <div className="ml-auto mt-1 h-1 w-16 rounded-pill bg-surface-2" aria-hidden>
+                      <div className="h-full rounded-pill bg-accent" style={{ width: `${Math.max(2, (r.sizeBytes / maxBytes) * 100)}%` }} />
+                    </div>
+                  </td>
                   <td className="px-3 py-1.5">
                     <div className="relative h-4" role="img" aria-label={`${duration} ms, começando em ${r.startMs} ms`}>
                       <div className="absolute flex h-full" style={{ left: `${(r.startMs / total) * 100}%`, width: `${(duration / total) * 100}%` }}>

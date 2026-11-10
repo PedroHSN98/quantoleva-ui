@@ -10,7 +10,7 @@ import { blockNotice } from "@/lib/block-notice";
 import { idleText, LOAD_HINT } from "@/lib/timing";
 import { GradeRing, VERDICT } from "./GradeRing";
 import { ImprovementPlan } from "./ImprovementPlan";
-import { Waterfall } from "./Waterfall";
+import { FilesExplorer } from "./FilesExplorer";
 import { Legend } from "./Legend";
 
 function formatBytes(b: number) {
@@ -315,9 +315,9 @@ export function ResultView({ id }: { id: string }) {
         <SectionHead
           id="files"
           title={many ? "Arquivos pedidos (execução mediana)" : "Arquivos pedidos"}
-          lead="Cada linha é um arquivo. Clique numa linha para ver o tempo de cada etapa."
+          lead="Cada linha é um arquivo. Filtre por tipo, ordene pelo tamanho e clique numa linha para ver o tempo de cada etapa."
         />
-        <Waterfall requests={requests} />
+        <FilesExplorer requests={requests} />
         <Legend />
       </section>
 
