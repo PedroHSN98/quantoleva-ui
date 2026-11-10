@@ -19,6 +19,11 @@
     background-image: radial-gradient(color-mix(in srgb, var(--on-ink) 14%, transparent) 1px, transparent 1px);
     background-size: 22px 22px;
   }
+  /* Sticky header: the page color, slightly see-through, over a blur. */
+  .glass {
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+  }
   .card { @apply rounded-lg border border-border bg-bg shadow-card; }
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 rounded-md bg-accent font-semibold text-on-accent

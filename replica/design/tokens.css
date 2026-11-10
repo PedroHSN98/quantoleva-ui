@@ -61,4 +61,50 @@
 
   --content-max: 1120px;
   --header-h: 64px;
+
+  color-scheme: light;
+}
+
+/* Dark theme. Same roles, dark values (replica/design/tokens.dark.json, contrast checked).
+   Set by the script in layout.tsx from the saved choice or the system preference. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #0e1316;
+  --surface: #141b1f;
+  --surface-2: #1c262b;
+  --border: #2a363c;
+  --border-input: #75858d;
+  --text: #e7ecee;
+  --text-muted: #9ba9b0;
+  --accent: #4fd1c5;
+  --on-accent: #05211f;
+  --accent-strong: #84e3da;
+  --accent-soft: #11302d;
+  --danger: #f47a74;
+  --success: #4cc38a;
+  --warning: #e3aa3c;
+
+  --grade-a: #4cc38a;
+  --grade-b: #9bd04f;
+  --grade-c: #e3aa3c;
+  --grade-d: #f08a4b;
+  --grade-e: #f47a74;
+  --grade-f: #ff9a9a;
+
+  --wf-dns: #a3b82f;
+  --wf-connect: #f0902a;
+  --wf-ssl: #a78bfa;
+  --wf-send: #f472b6;
+  --wf-wait: #6e93ff;
+  --wf-receive: #3ecf7a;
+
+  --status-2xx: #4cc38a;
+  --status-3xx: #e3aa3c;
+  --status-4xx: #f47a74;
+  --status-5xx: #d58ad0;
+
+  --shadow-card: 0 1px 2px rgba(0,0,0,.35), 0 1px 3px rgba(0,0,0,.4);
+  --shadow-lift: 0 4px 6px -2px rgba(0,0,0,.4), 0 12px 24px -6px rgba(0,0,0,.55);
+  --shadow-pop: 0 12px 32px rgba(0,0,0,.6);
 }

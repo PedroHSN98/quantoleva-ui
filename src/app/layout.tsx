@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LogoMark } from "@/components/Logo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { BRAND } from "@/lib/brand";
 import "./globals.css";
 
@@ -15,11 +16,18 @@ const NAV = [
   { href: "/#faq", label: "Perguntas" },
 ];
 
+// Runs before the first paint so a dark-theme visitor never sees a white flash:
+// the saved choice wins, otherwise the system preference.
+const THEME_SCRIPT = `(function(){try{var t=localStorage.getItem("theme");if(t!=="light"&&t!=="dark"){t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}document.documentElement.dataset.theme=t}catch(e){document.documentElement.dataset.theme=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}})()`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body>
-        <header className="sticky top-0 z-40 border-b border-border bg-bg/90 backdrop-blur">
+        <header className="glass sticky top-0 z-40 border-b border-border">
           <div className="mx-auto flex h-16 max-w-content items-center gap-6 px-4">
             <Link href="/" className="flex items-center gap-2.5">
               <LogoMark size={30} />
@@ -32,7 +40,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </Link>
               ))}
             </nav>
-            <Link href="/#teste" className="btn-primary ml-auto h-10 px-4 text-sm">Testar agora</Link>
+            <div className="ml-auto flex items-center gap-2">
+              <ThemeToggle />
+              <Link href="/#teste" className="btn-primary h-10 px-4 text-sm">Testar agora</Link>
+            </div>
           </div>
         </header>
 

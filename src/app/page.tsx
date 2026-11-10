@@ -192,7 +192,7 @@ export default async function Home() {
         <div className="bg-dots absolute inset-0 [mask-image:linear-gradient(to_top,black,transparent_85%)]" aria-hidden />
         <div className="relative mx-auto flex max-w-content flex-col items-center gap-6 px-4 py-16 text-center">
           <h2 id="final" className="max-w-2xl text-3xl font-extrabold md:text-4xl">Veja onde o seu site perde tempo.</h2>
-          <a href="#teste" className="inline-flex h-14 items-center justify-center gap-2 rounded-md bg-on-ink px-7 text-base font-semibold text-ink transition-colors duration-fast hover:bg-accent-soft">
+          <a href="#teste" className="inline-flex h-14 items-center justify-center gap-2 rounded-md bg-on-ink px-7 text-base font-semibold text-ink transition-colors duration-fast hover:bg-accent-on-ink">
             Fazer um teste
             <ArrowRight className="h-5 w-5" aria-hidden />
           </a>
