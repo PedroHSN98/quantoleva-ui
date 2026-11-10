@@ -3,6 +3,7 @@
 import { Fragment, useState } from "react";
 import { Braces, ChevronDown, File, FileCode, FileText, Image as ImageIcon, Palette, Type } from "lucide-react";
 import type { ContentType, RequestRow } from "@/lib/types";
+import { shortUrl } from "@/lib/short-url";
 import { PHASES } from "./Legend";
 
 export const ICONS: Record<ContentType, { Icon: typeof File; label: string }> = {
@@ -52,14 +53,14 @@ export function Waterfall({ requests, scaleMs }: { requests: RequestRow[]; scale
             return (
               <Fragment key={r.seq}>
                 <tr className="group/row border-t border-border transition-colors duration-fast hover:bg-surface">
-                  <td className="sticky left-0 max-w-[260px] bg-bg px-3 py-1.5 group-hover/row:bg-surface">
+                  <td className="sticky left-0 max-w-[340px] bg-bg px-3 py-1.5 group-hover/row:bg-surface">
                     <button
                       type="button" aria-expanded={expanded}
                       onClick={() => setOpen(expanded ? null : r.seq)}
                       className="flex w-full items-center gap-2 text-left"
                     >
                       <ChevronDown className={`h-4 w-4 shrink-0 transition-transform duration-base ${expanded ? "rotate-180" : ""}`} aria-hidden />
-                      <span className="truncate font-mono text-xs" title={r.url}>{r.url.replace(/^https?:\/\//, "")}</span>
+                      <span className="truncate font-mono text-xs" title={r.url}>{shortUrl(r.url)}</span>
                     </button>
                   </td>
                   <td className="px-3 py-1.5">
