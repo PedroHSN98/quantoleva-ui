@@ -7,6 +7,7 @@ import { downloadText, fileNameFor, resultCsv } from "@/lib/export-csv";
 import type { RequestRow, RuleResult, TestRow } from "@/lib/types";
 import { spread } from "@/lib/median";
 import { blockNotice } from "@/lib/block-notice";
+import { idleText, LOAD_HINT } from "@/lib/timing";
 import { ImprovementPlan } from "./ImprovementPlan";
 import { Waterfall } from "./Waterfall";
 import { Legend } from "./Legend";
@@ -112,11 +113,13 @@ export function ResultView({ id }: { id: string }) {
     {
       label: many ? "Tempo de carregamento (mediana)" : "Tempo de carregamento",
       value: seconds(test.loadMs ?? 0),
-      hint: sp && many ? `de ${seconds(sp.min)} a ${seconds(sp.max)} em ${test.runs.length} execuções` : undefined,
+      hint: sp && many ? `de ${seconds(sp.min)} a ${seconds(sp.max)} em ${test.runs.length} execuções` : LOAD_HINT,
     },
     { label: "Tamanho da página", value: formatBytes(test.pageBytes ?? 0), hint: many ? "da execução mediana" : undefined },
     { label: "Requisições", value: String(test.requestCount ?? 0), hint: many ? "da execução mediana" : undefined },
   ];
+  const idle = idleText(test.idleMs, test.idleReached, test.loadMs);
+  if (idle) tiles.push({ label: "Rede parada", value: idle.value, hint: idle.hint });
   // Time until the server starts answering with the page (DNS + connection + TLS + request + wait),
   // from the first successful HTML request. This is a web response time, not an ICMP ping.
   const first = requests.find((r) => r.contentType === "html" && r.statusCode >= 200 && r.statusCode < 300) ?? requests[0];
@@ -172,7 +175,7 @@ export function ResultView({ id }: { id: string }) {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
+        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
           <div className="rounded-lg border border-border bg-surface p-4 text-center">
             <p className="text-xs text-muted">Nota de desempenho</p>
             {notice ? (

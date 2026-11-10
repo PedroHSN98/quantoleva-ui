@@ -23,6 +23,10 @@ export interface TestRow {
   loadMs?: number;
   pageBytes?: number;
   requestCount?: number;
+  /** ms from the start until the page stopped downloading files; undefined for tests made before this was measured */
+  idleMs?: number;
+  /** false: the network was still busy when we stopped waiting, so idleMs is "more than" */
+  idleReached?: boolean;
   /** HTTP status of the main page (first response that is not a redirect). Undefined if unknown. */
   docStatus?: number;
   /** how many of the planned runs have finished (progress while running) */

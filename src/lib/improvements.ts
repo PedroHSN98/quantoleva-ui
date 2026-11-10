@@ -32,7 +32,10 @@ const top = (rs: RequestRow[], n = 5): FixFile[] =>
 const OLD_IMAGE = /\.(png|jpe?g|gif|bmp)$/i;
 const pathOf = (u: string) => { try { return new URL(u).pathname; } catch { return u; } };
 
-export function buildPlan(rules: RuleResult[], requests: RequestRow[], loadMs: number, pageBytes: number): Plan {
+export function buildPlan(
+  rules: RuleResult[], requests: RequestRow[], loadMs: number, pageBytes: number,
+  idle?: { ms?: number; reached?: boolean },
+): Plan {
   const weightSum = rules.reduce((s, r) => s + (WEIGHTS[r.key] ?? 1), 0) || 1;
   const gainOf = (r: RuleResult) => Math.round(((100 - r.score) * (WEIGHTS[r.key] ?? 1)) / weightSum);
   const score = Math.round(rules.reduce((s, r) => s + r.score * (WEIGHTS[r.key] ?? 1), 0) / weightSum);
@@ -56,6 +59,9 @@ export function buildPlan(rules: RuleResult[], requests: RequestRow[], loadMs: n
       const steps: string[] = [];
       if (firstMs > 600) steps.push(`O servidor demorou ${firstMs} ms para começar a responder. Isso é lento: use cache de página, um CDN na frente do site e veja consultas lentas no servidor. Meta: abaixo de 600 ms.`);
       else steps.push(`O servidor respondeu em ${firstMs} ms, o que é bom. O tempo está sendo gasto depois disso, carregando arquivos.`);
+      if (idle?.ms !== undefined && idle.ms - loadMs >= 1500) {
+        steps.push(`A página carregou (evento load) em ${(loadMs / 1000).toFixed(2)} s, mas só parou de baixar arquivos ${idle.reached === false ? "depois de" : "em"} ${(idle.ms / 1000).toFixed(2)} s. O que chega depois do load (anúncios, rastreadores, imagens sob demanda) não atrasa o carregamento, mas pesa na página e em quem tem internet lenta.`);
+      }
       steps.push("Reduza o peso e o número de arquivos (veja os outros itens): é o que mais diminui o tempo.");
       steps.push("Carregue primeiro só o que aparece na tela. Imagens e scripts de baixo da página podem esperar (carregamento sob demanda).");
       steps.push("Use um CDN para servir imagens, CSS e JS de um ponto perto do visitante.");

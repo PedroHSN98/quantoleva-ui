@@ -34,7 +34,11 @@ export function resultCsv(test: TestRow, rules: RuleResult[], requests: RequestR
   lines.push(row(["Data", new Date(test.createdAt).toLocaleString("pt-BR")]));
   lines.push(row(["Nota", notice ? "sem nota" : test.grade]));
   lines.push(row(["Pontuação (0 a 100)", notice ? "" : test.score]));
-  lines.push(row(["Tempo de carregamento (ms)", test.loadMs]));
+  lines.push(row(["Tempo até o evento de carregamento / load (ms)", test.loadMs]));
+  if (test.idleMs !== undefined) {
+    lines.push(row(["Tempo até a rede parar (ms)", test.idleMs]));
+    lines.push(row(["A rede chegou a parar?", test.idleReached === false ? "não: ainda baixava arquivos quando paramos de esperar" : "sim"]));
+  }
   lines.push(row(["Tamanho da página (bytes)", test.pageBytes]));
   lines.push(row(["Tamanho da página (MB)", mb(test.pageBytes ?? 0)]));
   lines.push(row(["Requisições", test.requestCount]));
@@ -68,14 +72,14 @@ export function resultCsv(test: TestRow, rules: RuleResult[], requests: RequestR
 /** The comparison table: one line per address. */
 export function batchCsv(tests: Array<TestRow | null | undefined>, origin: string): string {
   const lines: string[] = [];
-  lines.push(row(["Endereço", "Estado", "Tempo de carregamento (ms)", "Nota", "Pontuação (0 a 100)", "Tamanho (bytes)", "Tamanho (KB)", "Requisições", "Aviso", "Link do resultado"]));
+  lines.push(row(["Endereço", "Estado", "Tempo até o load (ms)", "Tempo até a rede parar (ms)", "Nota", "Pontuação (0 a 100)", "Tamanho (bytes)", "Tamanho (KB)", "Requisições", "Aviso", "Link do resultado"]));
   for (const t of tests) {
     if (!t) continue;
     const notice = t.status === "done" ? blockNotice(t.docStatus) : null;
     const state = t.status === "done" ? "pronto" : t.status === "failed" ? `falhou (${t.errorCode ?? "erro"})` : t.status;
     const ok = t.status === "done" && !notice;
     lines.push(row([
-      t.url, state, t.status === "done" ? t.loadMs : "", ok ? t.grade : notice ? "sem nota" : "", ok ? t.score : "",
+      t.url, state, t.status === "done" ? t.loadMs : "", t.status === "done" ? (t.idleMs ?? "") : "", ok ? t.grade : notice ? "sem nota" : "", ok ? t.score : "",
       t.status === "done" ? t.pageBytes : "", t.status === "done" ? kb(t.pageBytes ?? 0) : "", t.status === "done" ? t.requestCount : "",
       notice ? notice.short : "", `${origin}/result/${t.publicId}`,
     ]));

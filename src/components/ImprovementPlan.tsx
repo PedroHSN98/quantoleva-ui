@@ -11,8 +11,8 @@ const fmtBytes = (b: number) => (b >= 1048576 ? `${(b / 1048576).toFixed(2)} MB`
 export function ImprovementPlan({ test, rules, requests }: { test: TestRow; rules: RuleResult[]; requests: RequestRow[] }) {
   const [open, setOpen] = useState(false);
   const plan = useMemo(
-    () => buildPlan(rules, requests, test.loadMs ?? 0, test.pageBytes ?? 0),
-    [rules, requests, test.loadMs, test.pageBytes],
+    () => buildPlan(rules, requests, test.loadMs ?? 0, test.pageBytes ?? 0, { ms: test.idleMs, reached: test.idleReached }),
+    [rules, requests, test.loadMs, test.pageBytes, test.idleMs, test.idleReached],
   );
   const ready = requests.length > 0;
 

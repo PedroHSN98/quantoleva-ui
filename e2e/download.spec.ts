@@ -5,7 +5,7 @@ import type { RequestRow, TestRow } from "../src/lib/types";
 
 const base: TestRow = {
   publicId: "abc", url: "https://exemplo.com.br/", locationSlug: "sa-east", status: "done", grade: "B", score: 82,
-  loadMs: 1234, pageBytes: 2 * 1048576, requestCount: 1, docStatus: 200, runsDone: 1, runsPlanned: 1, runs: [],
+  loadMs: 1234, idleMs: 3100, idleReached: true, pageBytes: 2 * 1048576, requestCount: 1, docStatus: 200, runsDone: 1, runsPlanned: 1, runs: [],
   createdAt: "2026-11-09T12:00:00.000Z", simulated: false,
 };
 const req = (over: Partial<RequestRow> = {}): RequestRow => ({
@@ -29,7 +29,9 @@ test.describe("report file (pure logic)", () => {
     const csv = resultCsv(base, [{ key: "page_weight", name: "Peso total da página", score: 70, advice: "Reduza." }], [req(), req({ seq: 1, url: "https://exemplo.com.br/a.js", contentType: "js", sizeBytes: 1536 })]);
     expect(csv.startsWith("﻿")).toBe(true);
     expect(csv).toContain('"Endereço testado";"https://exemplo.com.br/"');
-    expect(csv).toContain('"Tempo de carregamento (ms)";"1234"');
+    expect(csv).toContain('"Tempo até o evento de carregamento / load (ms)";"1234"');
+    expect(csv).toContain('"Tempo até a rede parar (ms)";"3100"');
+    expect(csv).toContain('"A rede chegou a parar?";"sim"');
     expect(csv).toContain('"Primeira resposta do servidor (ms)";"20"'); // 2+3+4+5+6
     expect(csv).toContain('"Peso total da página";"70";"Reduza."');
     expect(csv).toContain('"2";"https://exemplo.com.br/a.js";"exemplo.com.br";"js";"200";"1536";"1,50"');

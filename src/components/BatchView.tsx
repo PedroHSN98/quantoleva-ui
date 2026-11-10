@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, Download, Loader2, Plus, TriangleAlert } from "lucide-react";
 import { batchCsv, downloadText } from "@/lib/export-csv";
+import { idleText } from "@/lib/timing";
 import type { TestRow } from "@/lib/types";
 import { blockNotice } from "@/lib/block-notice";
 
@@ -82,7 +83,8 @@ export function BatchView({ ids }: { ids: string[] }) {
             <tr>
               <th scope="col" className="px-3 py-2">Endereço</th>
               <th scope="col" className="px-3 py-2">Estado</th>
-              <th scope="col" className="px-3 py-2 text-right">Tempo</th>
+              <th scope="col" className="px-3 py-2 text-right">Carregou em</th>
+              <th scope="col" className="px-3 py-2 text-right">Rede parada</th>
               <th scope="col" className="px-3 py-2 text-center">Nota</th>
               <th scope="col" className="px-3 py-2 text-right">Tamanho</th>
               <th scope="col" className="px-3 py-2 text-right">Requisições</th>
@@ -113,6 +115,7 @@ export function BatchView({ ids }: { ids: string[] }) {
                     )}
                   </td>
                   <td className="px-3 py-2 text-right tabular-nums">{t?.status === "done" ? seconds(t.loadMs ?? 0) : "-"}</td>
+                  <td className="px-3 py-2 text-right tabular-nums">{t?.status === "done" ? (idleText(t.idleMs, t.idleReached, t.loadMs)?.value ?? "-") : "-"}</td>
                   <td className={`px-3 py-2 text-center text-lg font-bold ${t?.grade ? GRADE_CLASS[t.grade] : ""}`}>
                     {t?.status === "done" && !blockNotice(t.docStatus) ? <span aria-label={`Nota ${t.grade}, ${t.score} de 100`}>{t.grade}</span> : "-"}
                   </td>

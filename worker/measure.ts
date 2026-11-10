@@ -17,6 +17,10 @@ export class MeasureError extends Error {
 export interface Measured {
   finalUrl: string;
   loadMs: number;
+  /** from the start until the network went quiet (includes the 0.5 s of quiet the browser waits for) */
+  idleMs: number;
+  /** false when the network was still busy when we stopped waiting */
+  idleReached: boolean;
   requests: (RequestRow & { isRedirect: boolean; cacheable: boolean | null; reqHeaders: Record<string, string>; resHeaders: Record<string, string> })[];
 }
 
@@ -146,7 +150,9 @@ export async function measure(url: string, timeoutMs: number = NAV_TIMEOUT_MS): 
       throw new MeasureError("unreachable");
     }
     const loadMs = Date.now() - started;
-    await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {});
+    let idleReached = true;
+    await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => { idleReached = false; });
+    const idleMs = Math.max(loadMs, Date.now() - started);
     for (const en of entries.values()) done.push(en); // anything still open
 
     const finalUrl = page.url();
@@ -179,7 +185,7 @@ export async function measure(url: string, timeoutMs: number = NAV_TIMEOUT_MS): 
         reqHeaders: en.reqHeaders, resHeaders: en.resHeaders,
       };
     });
-    return { finalUrl, loadMs, requests };
+    return { finalUrl, loadMs, idleMs, idleReached, requests };
   } finally {
     await browser.close();
   }

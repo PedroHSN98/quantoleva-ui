@@ -125,8 +125,8 @@ async function run(job: { id: string; test_id: string }) {
       }
       await client.query(
         `update tests set status = 'done', final_url = $2, grade = $3, score = $4, load_ms = $5, page_bytes = $6,
-                request_count = $7, finished_at = now(), updated_at = now() where id = $1`,
-        [job.test_id, m.finalUrl, grade, score, m.loadMs, pageBytes, m.requests.length],
+                request_count = $7, idle_ms = $8, idle_reached = $9, finished_at = now(), updated_at = now() where id = $1`,
+        [job.test_id, m.finalUrl, grade, score, m.loadMs, pageBytes, m.requests.length, m.idleMs, m.idleReached],
       );
       // all runs, median flagged (cleared first: a re-claimed job may have left rows behind)
       await client.query("delete from test_runs where test_id = $1", [job.test_id]);
