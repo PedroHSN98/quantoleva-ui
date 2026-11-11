@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Activity, CheckCircle2, Copy, Download, Globe, Layers, Loader2, MapPin, Package, Plus, Timer, TriangleAlert, XCircle, Zap, type LucideIcon } from "lucide-react";
+import { Activity, CheckCircle2, Copy, Download, FileDown, Globe, Layers, Loader2, MapPin, Package, Plus, Timer, TriangleAlert, XCircle, Zap, type LucideIcon } from "lucide-react";
 import { downloadText, fileNameFor, resultCsv } from "@/lib/export-csv";
 import type { RequestRow, RuleResult, TestRow } from "@/lib/types";
 import { spread } from "@/lib/median";
@@ -176,11 +176,19 @@ export function ResultView({ id }: { id: string }) {
               Local: {test.locationSlug} · {new Date(test.createdAt).toLocaleString("pt-BR")}
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="no-print flex flex-wrap gap-2">
             <Link href="/#teste" className="btn-primary h-10 px-4 text-sm">
               <Plus className="h-4 w-4" aria-hidden />
               Testar outro endereço
             </Link>
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="btn-secondary h-10 px-4 text-sm"
+            >
+              <FileDown className="h-4 w-4" aria-hidden />
+              Baixar PDF
+            </button>
             <button
               type="button"
               disabled={requests.length === 0}
@@ -321,7 +329,7 @@ export function ResultView({ id }: { id: string }) {
         <Legend />
       </section>
 
-      <div className="flex justify-center">
+      <div className="no-print flex justify-center">
         <Link href="/#teste" className="btn-primary h-12 px-6">
           <Plus className="h-4 w-4" aria-hidden />
           Testar outro endereço

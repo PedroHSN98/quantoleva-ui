@@ -18,7 +18,7 @@ export function ImprovementPlan({ test, rules, requests }: { test: TestRow; rule
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-2">
+      <div className="no-print flex flex-wrap gap-2">
         <button
           type="button"
           aria-expanded={open}

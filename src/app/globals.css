@@ -39,3 +39,35 @@
   html { scroll-behavior: auto; }
   * { animation: none !important; transition: none !important; }
 }
+
+/* PDF export: the browser's "Salvar como PDF" uses these rules. Hide the chrome and
+   the on-screen buttons, keep the colors, and never cut a card across two pages. */
+@media print {
+  /* Always print on the light theme, so a dark-theme reader never gets white-on-white
+     text. These repeat the light values from tokens.css, overriding the dark overrides. */
+  :root, :root[data-theme="dark"] {
+    color-scheme: light;
+    --bg: #ffffff; --surface: #f6f7f9; --surface-2: #eceff3; --border: #e3e6ea; --border-input: #868e98;
+    --text: #14171c; --text-muted: #5b6470;
+    --accent: #0b6e69; --on-accent: #ffffff; --accent-strong: #085a56; --accent-soft: #e4f2f0;
+    --danger: #c62f2f; --success: #1f7a4d; --warning: #8a5a00;
+    --grade-a: #1f7a4d; --grade-b: #4d7a1f; --grade-c: #8a5a00; --grade-d: #b24a12; --grade-e: #c62f2f; --grade-f: #8f1d1d;
+    --wf-dns: #6d7a0a; --wf-connect: #d97706; --wf-ssl: #7c3aed; --wf-send: #db2777; --wf-wait: #2f5bea; --wf-receive: #1f9d55;
+    --status-2xx: #1f7a4d; --status-3xx: #8a5a00; --status-4xx: #c62f2f; --status-5xx: #7a1d6e;
+  }
+  /* Keep background colors and the grade ring filled in the PDF. */
+  *, *::before, *::after { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  html, body { background: #ffffff !important; color: #14171c !important; }
+  /* Site header, footer and anything marked no-print stay off the page. */
+  body > header, body > footer, .no-print { display: none !important; }
+  main { display: block; }
+  .mx-auto { max-width: none !important; }
+  /* Tighten the outer padding so the report fills the sheet. */
+  main > div { padding: 0 !important; }
+  /* Do not split a card, a rule, a table row or a section heading over a page break. */
+  .card, li, tr, h1, h2, h3 { break-inside: avoid; page-break-inside: avoid; }
+  h1, h2, h3 { break-after: avoid; page-break-after: avoid; }
+  /* Open details blocks print their contents instead of staying collapsed. */
+  details { break-inside: avoid; }
+  @page { margin: 14mm; }
+}
