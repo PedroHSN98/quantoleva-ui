@@ -1,0 +1,47 @@
+# Render Blueprint: one file that creates the whole stack (database + web + worker).
+# In Render: New > Blueprint, point it at this repo, and it reads this file.
+# Docs: https://render.com/docs/blueprint-spec
+
+databases:
+  - name: quantoleva-db
+    databaseName: speedtest
+    user: speedtest
+    plan: free # 30-day free Postgres; switch to "basic-256mb" (paid) to keep it long-term
+    postgresMajorVersion: "16"
+
+services:
+  # The Next.js site + API. Migrations run once per deploy, before traffic switches over.
+  - type: web
+    name: quantoleva-web
+    runtime: node
+    plan: starter
+    region: virginia
+    buildCommand: npm ci && npm run build
+    preDeployCommand: npm run db:migrate:prod
+    startCommand: npm run start
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: quantoleva-db
+          property: connectionString
+      - key: IP_HASH_SECRET # random value, generated once and kept
+        generateValue: true
+      - key: NODE_VERSION
+        value: "22.12.0"
+
+  # The measuring worker: a Docker image with Chromium that runs non-stop.
+  - type: worker
+    name: quantoleva-worker
+    runtime: docker
+    dockerfilePath: ./Dockerfile.worker
+    plan: starter # ~512 MB RAM; enough for one Chromium at a time
+    region: virginia
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: quantoleva-db
+          property: connectionString
+      - key: WORKER_LOCATION # must match a slug in the locations table (us-east = Virgínia)
+        value: us-east
+      - key: WORKER_CONCURRENCY # keep at 1 on a small plan; each test is a full browser
+        value: "1"

@@ -1,0 +1,17 @@
+# The worker opens a real Chromium to measure pages. This official Playwright image
+# already contains Chromium and every system library it needs, matched to playwright 1.65.0.
+FROM mcr.microsoft.com/playwright:v1.65.0-noble
+
+WORKDIR /app
+
+# Install all dependencies first (tsx and playwright live in devDependencies, so we do
+# NOT omit dev here). This layer is cached until the lockfile changes.
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# App code the worker imports: worker/, src/lib/*, and the migrations folder.
+COPY . .
+
+# The worker reads DATABASE_URL and WORKER_* straight from the environment (set in Render).
+ENV NODE_ENV=production
+CMD ["npm", "run", "worker:prod"]
