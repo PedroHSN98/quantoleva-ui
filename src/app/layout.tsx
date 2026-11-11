@@ -1,13 +1,47 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { LogoMark } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { BRAND } from "@/lib/brand";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
+const DESCRIPTION =
+  "Carregamos a sua página num navegador de verdade e mostramos o tempo, o peso e cada arquivo pedido.";
+
 export const metadata: Metadata = {
-  title: `${BRAND.name}: ${BRAND.tagline}`,
-  description: "Carregamos a sua página num navegador de verdade e mostramos o tempo, o peso e cada arquivo pedido.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `${BRAND.name}: ${BRAND.tagline}`,
+    template: `%s · ${BRAND.name}`, // inner pages set their own title, suffixed with the brand
+  },
+  description: DESCRIPTION,
+  applicationName: BRAND.name,
+  keywords: ["teste de velocidade", "velocidade de site", "tempo de carregamento", "performance web", "pagespeed", BRAND.name],
+  authors: [{ name: BRAND.name }],
+  alternates: { canonical: "/" },
+  // The share image (opengraph-image.tsx) is picked up automatically by Next.
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    url: SITE_URL,
+    siteName: BRAND.name,
+    title: `${BRAND.name}: ${BRAND.tagline}`,
+    description: DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${BRAND.name}: ${BRAND.tagline}`,
+    description: DESCRIPTION,
+  },
+  robots: { index: true, follow: true },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0e1316" },
+  ],
 };
 
 const NAV = [
