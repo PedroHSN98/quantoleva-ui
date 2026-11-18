@@ -109,11 +109,11 @@ async function run(job: { id: string; test_id: string }) {
         // upsert on (test_id, seq): safe if a retry runs twice
         await client.query(
           `insert into requests (test_id, seq, url, domain, content_type, status_code, size_bytes, start_ms,
-              blocked_ms, dns_ms, connect_ms, ssl_ms, send_ms, wait_ms, receive_ms, is_redirect, cacheable, req_headers, res_headers)
-           values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
+              blocked_ms, dns_ms, connect_ms, ssl_ms, send_ms, wait_ms, receive_ms, is_redirect, cacheable, protocol, req_headers, res_headers)
+           values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
            on conflict (test_id, seq) do nothing`,
           [job.test_id, r.seq, r.url, r.domain, r.contentType, r.statusCode, r.sizeBytes, r.startMs,
-            r.blockedMs, r.dnsMs, r.connectMs, r.sslMs, r.sendMs, r.waitMs, r.receiveMs, r.isRedirect, r.cacheable,
+            r.blockedMs, r.dnsMs, r.connectMs, r.sslMs, r.sendMs, r.waitMs, r.receiveMs, r.isRedirect, r.cacheable, r.protocol,
             JSON.stringify(r.reqHeaders), JSON.stringify(r.resHeaders)],
         );
       }
@@ -125,9 +125,20 @@ async function run(job: { id: string; test_id: string }) {
       }
       await client.query(
         `update tests set status = 'done', final_url = $2, grade = $3, score = $4, load_ms = $5, page_bytes = $6,
-                request_count = $7, idle_ms = $8, idle_reached = $9, finished_at = now(), updated_at = now() where id = $1`,
-        [job.test_id, m.finalUrl, grade, score, m.loadMs, pageBytes, m.requests.length, m.idleMs, m.idleReached],
+                request_count = $7, idle_ms = $8, idle_reached = $9,
+                fcp_ms = $10, lcp_ms = $11, cls = $12, tbt_ms = $13, ttfb_ms = $14,
+                finished_at = now(), updated_at = now() where id = $1`,
+        [job.test_id, m.finalUrl, grade, score, m.loadMs, pageBytes, m.requests.length, m.idleMs, m.idleReached,
+          m.vitals.fcpMs, m.vitals.lcpMs, m.vitals.cls, m.vitals.tbtMs, m.vitals.ttfbMs],
       );
+      // filmstrip for the median run (cleared first in case a re-claimed job left rows behind)
+      await client.query("delete from test_frames where test_id = $1", [job.test_id]);
+      for (const f of m.frames) {
+        await client.query(
+          "insert into test_frames (test_id, at_ms, image) values ($1,$2,$3) on conflict (test_id, at_ms) do nothing",
+          [job.test_id, f.atMs, f.image],
+        );
+      }
       // all runs, median flagged (cleared first: a re-claimed job may have left rows behind)
       await client.query("delete from test_runs where test_id = $1", [job.test_id]);
       for (let i = 0; i < results.length; i++) {

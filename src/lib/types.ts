@@ -29,6 +29,12 @@ export interface TestRow {
   idleReached?: boolean;
   /** HTTP status of the main page (first response that is not a redirect). Undefined if unknown. */
   docStatus?: number;
+  /** Core Web Vitals (median run); undefined for tests measured before they were captured */
+  fcpMs?: number;
+  lcpMs?: number;
+  cls?: number;
+  tbtMs?: number;
+  ttfbMs?: number;
   /** how many of the planned runs have finished (progress while running) */
   runsDone: number;
   runsPlanned: number;
@@ -56,6 +62,20 @@ export interface RequestRow {
   sendMs: number;
   waitMs: number;
   receiveMs: number;
+  /** Fields below power the diagnostics. Undefined for tests measured before they were stored. */
+  isRedirect?: boolean;
+  /** whether the response may be reused from cache; null when it couldn't be decided */
+  cacheable?: boolean | null;
+  /** network protocol, e.g. "h2", "h3", "http/1.1" */
+  protocol?: string | null;
+  /** value of the content-encoding response header, e.g. "gzip", "br"; "" when absent */
+  contentEncoding?: string;
+  /** value of the cache-control response header; "" when absent */
+  cacheControl?: string;
+  /** security response headers (meaningful on the main document) */
+  hsts?: boolean;
+  csp?: boolean;
+  noSniff?: boolean;
 }
 
 export interface RuleResult {
@@ -63,4 +83,20 @@ export interface RuleResult {
   name: string;
   score: number;
   advice: string;
+}
+
+/** One filmstrip frame: a data: URL and the moment it was captured. */
+export interface TestFrame {
+  atMs: number;
+  image: string;
+}
+
+/** One past test of the same URL+location, for the "Evolução" chart. Chronological order. */
+export interface HistoryPoint {
+  publicId: string;
+  score: number;
+  loadMs: number;
+  createdAt: string;
+  /** true for the test currently being viewed */
+  current: boolean;
 }

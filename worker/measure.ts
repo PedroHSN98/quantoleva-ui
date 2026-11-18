@@ -14,6 +14,20 @@ export class MeasureError extends Error {
   }
 }
 
+export interface Vitals {
+  fcpMs: number | null;
+  lcpMs: number | null;
+  cls: number | null;
+  tbtMs: number | null;
+  ttfbMs: number | null;
+}
+
+export interface Frame {
+  atMs: number;
+  /** a data: URL (image/jpeg;base64,...) ready to drop into an <img src> */
+  image: string;
+}
+
 export interface Measured {
   finalUrl: string;
   loadMs: number;
@@ -21,7 +35,11 @@ export interface Measured {
   idleMs: number;
   /** false when the network was still busy when we stopped waiting */
   idleReached: boolean;
-  requests: (RequestRow & { isRedirect: boolean; cacheable: boolean | null; reqHeaders: Record<string, string>; resHeaders: Record<string, string> })[];
+  /** Core Web Vitals; fields are null when the page didn't produce them */
+  vitals: Vitals;
+  /** loading filmstrip, oldest first (may be empty) */
+  frames: Frame[];
+  requests: (RequestRow & { isRedirect: boolean; cacheable: boolean | null; protocol: string | null; reqHeaders: Record<string, string>; resHeaders: Record<string, string> })[];
 }
 
 interface Entry {
@@ -35,6 +53,7 @@ interface Entry {
   endTs?: number;
   size: number;
   isRedirect: boolean;
+  protocol: string | null;
   reqHeaders: Record<string, string>;
   resHeaders: Record<string, string>;
 }
@@ -53,6 +72,22 @@ function classify(type: string, mime: string): ContentType {
   if (type === "Font") return "font";
   if (mime.startsWith("text/")) return "text";
   return "other";
+}
+
+const MAX_KEPT_FRAMES = 8;
+
+/** Drop consecutive identical frames, then keep up to 8 evenly spaced across the load. */
+function pickFrames(raw: { atMs: number; data: string }[]): Frame[] {
+  const changed = raw.filter((f, i) => i === 0 || f.data !== raw[i - 1].data);
+  if (changed.length <= MAX_KEPT_FRAMES) {
+    return changed.map((f) => ({ atMs: f.atMs, image: `data:image/jpeg;base64,${f.data}` }));
+  }
+  const out: Frame[] = [];
+  for (let i = 0; i < MAX_KEPT_FRAMES; i++) {
+    const f = changed[Math.round((i / (MAX_KEPT_FRAMES - 1)) * (changed.length - 1))];
+    out.push({ atMs: f.atMs, image: `data:image/jpeg;base64,${f.data}` });
+  }
+  return out;
 }
 
 function cacheable(h: Record<string, string>): boolean | null {
@@ -92,6 +127,31 @@ export async function measure(url: string, timeoutMs: number = NAV_TIMEOUT_MS): 
     await cdp.send("Network.enable");
     await cdp.send("Network.setCacheDisabled", { cacheDisabled: true });
 
+    // Core Web Vitals: set up observers before anything loads. We keep each observer and its
+    // entry buffer on window, then drain them synchronously (takeRecords) when we read, so a
+    // pending async callback never costs us the value.
+    await page.addInitScript(() => {
+      const w = window as unknown as { __vobs: { type: string; obs: PerformanceObserver | null; entries: PerformanceEntry[] }[] };
+      w.__vobs = ["largest-contentful-paint", "layout-shift", "longtask"].map((type) => {
+        const entries: PerformanceEntry[] = [];
+        let obs: PerformanceObserver | null = null;
+        try {
+          obs = new PerformanceObserver((l) => { for (const e of l.getEntries()) entries.push(e); });
+          obs.observe({ type, buffered: true });
+        } catch { /* unsupported type */ }
+        return { type, obs, entries };
+      });
+    });
+
+    // Loading filmstrip: collect downscaled JPEG frames while the page renders.
+    const rawFrames: { atMs: number; data: string }[] = [];
+    let screencastStart = 0;
+    const MAX_FRAMES = 300;
+    cdp.on("Page.screencastFrame", async (e) => {
+      if (rawFrames.length < MAX_FRAMES && screencastStart) rawFrames.push({ atMs: Date.now() - screencastStart, data: e.data });
+      try { await cdp.send("Page.screencastFrameAck", { sessionId: e.sessionId }); } catch { /* page gone */ }
+    });
+
     const entries = new Map<string, Entry>();
     const done: Entry[] = [];
     let t0 = 0;
@@ -104,6 +164,7 @@ export async function measure(url: string, timeoutMs: number = NAV_TIMEOUT_MS): 
         prev.status = e.redirectResponse.status;
         prev.timing = e.redirectResponse.timing;
         prev.resHeaders = clean(e.redirectResponse.headers);
+        prev.protocol = e.redirectResponse.protocol ?? null;
         prev.endTs = e.timestamp;
         prev.isRedirect = true;
         done.push(prev);
@@ -111,7 +172,7 @@ export async function measure(url: string, timeoutMs: number = NAV_TIMEOUT_MS): 
       if (done.length + entries.size >= MAX_REQUESTS) return;
       entries.set(e.requestId, {
         id: e.requestId, url: e.request.url, type: e.type ?? "Other", mime: "", startTs: e.timestamp,
-        status: 0, size: 0, isRedirect: false, reqHeaders: clean(e.request.headers), resHeaders: {},
+        status: 0, size: 0, isRedirect: false, protocol: null, reqHeaders: clean(e.request.headers), resHeaders: {},
       });
     });
     cdp.on("Network.responseReceived", (e) => {
@@ -121,6 +182,7 @@ export async function measure(url: string, timeoutMs: number = NAV_TIMEOUT_MS): 
       en.mime = e.response.mimeType ?? "";
       en.timing = e.response.timing;
       en.resHeaders = clean(e.response.headers);
+      en.protocol = e.response.protocol ?? null;
       en.type = e.type ?? en.type;
     });
     cdp.on("Network.loadingFinished", (e) => {
@@ -139,7 +201,10 @@ export async function measure(url: string, timeoutMs: number = NAV_TIMEOUT_MS): 
       entries.delete(e.requestId);
     });
 
-    const started = Date.now();
+    await cdp.send("Page.enable");
+    await cdp.send("Page.startScreencast", { format: "jpeg", quality: 50, maxWidth: 400, maxHeight: 300, everyNthFrame: 1 }).catch(() => { /* screencast optional */ });
+    screencastStart = Date.now();
+    const started = screencastStart;
     try {
       await page.goto(url, { waitUntil: "load", timeout: timeoutMs });
     } catch (e) {
@@ -154,6 +219,41 @@ export async function measure(url: string, timeoutMs: number = NAV_TIMEOUT_MS): 
     await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => { idleReached = false; });
     const idleMs = Math.max(loadMs, Date.now() - started);
     for (const en of entries.values()) done.push(en); // anything still open
+
+    await cdp.send("Page.stopScreencast").catch(() => { /* already stopped */ });
+
+    // Read the Core Web Vitals the observers collected. Best-effort: a null field just hides a tile.
+    const vitals: Vitals = await page.evaluate(() => {
+      const w = window as unknown as { __vobs?: { type: string; obs: PerformanceObserver | null; entries: PerformanceEntry[] }[] };
+      const paints = performance.getEntriesByType("paint");
+      const fcp = paints.find((p) => p.name === "first-contentful-paint")?.startTime ?? 0;
+      const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+      const ttfb = nav?.responseStart ?? 0;
+
+      let lcp = 0, cls = 0, tbt = 0;
+      let hasLcp = false, hasCls = false;
+      for (const v of w.__vobs ?? []) {
+        const all = v.entries.concat(v.obs ? v.obs.takeRecords() : []);
+        if (v.type === "largest-contentful-paint") {
+          for (const e of all) { lcp = Math.max(lcp, e.startTime); hasLcp = true; }
+        } else if (v.type === "layout-shift") {
+          hasCls = true;
+          for (const e of all) { const s = e as PerformanceEntry & { value: number; hadRecentInput: boolean }; if (!s.hadRecentInput) cls += s.value; }
+        } else if (v.type === "longtask") {
+          for (const e of all) if (e.startTime + e.duration > fcp) tbt += Math.max(0, e.duration - 50);
+        }
+      }
+      return {
+        fcpMs: fcp ? Math.round(fcp) : null,
+        lcpMs: hasLcp && lcp ? Math.round(lcp) : null,
+        cls: hasCls ? Math.round(cls * 1000) / 1000 : null,
+        tbtMs: Math.round(tbt),
+        ttfbMs: ttfb ? Math.round(ttfb) : null,
+      };
+    }).catch(() => ({ fcpMs: null, lcpMs: null, cls: null, tbtMs: null, ttfbMs: null }));
+
+    // Thin the raw frames down to ~8 evenly spaced across the load, oldest first.
+    const frames: Frame[] = pickFrames(rawFrames);
 
     const finalUrl = page.url();
     done.sort((a, b) => a.startTs - b.startTs);
@@ -181,11 +281,11 @@ export async function measure(url: string, timeoutMs: number = NAV_TIMEOUT_MS): 
         seq: i, url: en.url.slice(0, 2000), domain: u.hostname,
         contentType: classify(en.type, en.mime), statusCode: en.status, sizeBytes: Math.round(en.size),
         startMs, blockedMs, dnsMs, connectMs, sslMs, sendMs, waitMs, receiveMs,
-        isRedirect: en.isRedirect, cacheable: cacheable(en.resHeaders),
+        isRedirect: en.isRedirect, cacheable: cacheable(en.resHeaders), protocol: en.protocol,
         reqHeaders: en.reqHeaders, resHeaders: en.resHeaders,
       };
     });
-    return { finalUrl, loadMs, idleMs, idleReached, requests };
+    return { finalUrl, loadMs, idleMs, idleReached, vitals, frames, requests };
   } finally {
     await browser.close();
   }

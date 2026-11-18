@@ -23,6 +23,28 @@ const ERRORS: Record<string, string> = {
 const seconds = (ms: number) => `${(ms / 1000).toFixed(2)} s`;
 const formatBytes = (b: number) => (b >= 1048576 ? `${(b / 1048576).toFixed(2)} MB` : `${(b / 1024).toFixed(1)} KB`);
 const finished = (t: TestRow | null | undefined) => t?.status === "done" || t?.status === "failed";
+const host = (url: string) => url.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+
+/** Horizontal bars comparing one metric across the batch. Single hue (magnitude). */
+function CompareBars({ title, rows, format }: { title: string; rows: { label: string; value: number }[]; format: (v: number) => string }) {
+  const max = Math.max(1, ...rows.map((r) => r.value));
+  return (
+    <div className="card p-5">
+      <h3 className="mb-3 text-sm font-semibold">{title}</h3>
+      <ul className="space-y-2">
+        {rows.map((r) => (
+          <li key={r.label} className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1 text-sm">
+            <span className="truncate font-mono text-xs" title={r.label}>{r.label}</span>
+            <span className="tabular-nums text-muted">{format(r.value)}</span>
+            <span className="col-span-2 h-2 rounded-pill bg-surface-2" aria-hidden>
+              <span className="block h-full rounded-pill" style={{ width: `${Math.max(2, (r.value / max) * 100)}%`, background: "var(--accent)" }} />
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 export function BatchView({ ids }: { ids: string[] }) {
   const [tests, setTests] = useState<Record<string, TestRow | null>>({});
@@ -48,6 +70,9 @@ export function BatchView({ ids }: { ids: string[] }) {
   const list = ids.map((id) => tests[id]);
   const doneCount = list.filter((t) => finished(t) || t === null).length;
   const allDone = doneCount === ids.length && Object.keys(tests).length === ids.length;
+
+  // Scored, non-blocked results — the ones that can be compared on a chart.
+  const scored = list.filter((t): t is TestRow => t?.status === "done" && !blockNotice(t.docStatus));
 
   return (
     <div className="space-y-6">
@@ -75,6 +100,14 @@ export function BatchView({ ids }: { ids: string[] }) {
           </div>
         )}
       </div>
+
+      {allDone && scored.length >= 2 && (
+        <div className="grid gap-4 md:grid-cols-3">
+          <CompareBars title="Nota (maior é melhor)" rows={scored.map((t) => ({ label: host(t.url), value: t.score ?? 0 }))} format={(v) => `${v}/100`} />
+          <CompareBars title="Tempo de carregamento (menor é melhor)" rows={scored.map((t) => ({ label: host(t.url), value: t.loadMs ?? 0 }))} format={seconds} />
+          <CompareBars title="Tamanho (menor é melhor)" rows={scored.map((t) => ({ label: host(t.url), value: t.pageBytes ?? 0 }))} format={formatBytes} />
+        </div>
+      )}
 
       <div className="overflow-x-auto rounded-lg border border-border bg-bg shadow-card">
         <table className="w-full min-w-[760px] text-sm">

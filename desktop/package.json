@@ -1,0 +1,38 @@
+{
+  "name": "quantoleva-desktop",
+  "version": "0.1.0",
+  "description": "Quantoleva — teste de velocidade de páginas, como aplicativo de desktop",
+  "author": "Quantoleva",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "measure": "node test-measure.js",
+    "dist": "electron-builder --win"
+  },
+  "build": {
+    "appId": "com.quantoleva.desktop",
+    "productName": "Quantoleva",
+    "files": ["main.js", "preload.js", "src/**/*", "renderer/**/*", "package.json"],
+    "extraResources": [
+      { "from": "ms-playwright", "to": "ms-playwright" }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "Quantoleva"
+    }
+  },
+  "dependencies": {
+    "playwright": "^1.65.0"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  }
+}

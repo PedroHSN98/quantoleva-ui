@@ -2,7 +2,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import { pool } from "./db";
 import { rateLimit } from "./limits";
-import { RUNS_PLANNED, type ContentType, type ErrorCode, type Location, type RequestRow, type RuleResult, type TestRow } from "./types";
+import { RUNS_PLANNED, type ContentType, type ErrorCode, type HistoryPoint, type Location, type RequestRow, type RuleResult, type TestFrame, type TestRow } from "./types";
 
 export function hashIp(ip: string): string {
   const secret = process.env.IP_HASH_SECRET ?? "dev-only-secret";
@@ -21,6 +21,7 @@ export async function getTest(publicId: string): Promise<TestRow | null> {
   const { rows } = await pool().query(
     `select t.public_id, t.url, l.slug as location_slug, t.status, t.error_code, t.grade, t.score,
             t.load_ms, t.page_bytes, t.request_count, t.created_at, t.started_at, t.finished_at, t.runs_done, t.id, t.idle_ms, t.idle_reached,
+            t.fcp_ms, t.lcp_ms, t.cls, t.tbt_ms, t.ttfb_ms,
             (select q.status_code from requests q
               where q.test_id = t.id and q.status_code > 0 and q.status_code not between 300 and 399
               order by q.start_ms, q.seq limit 1) as doc_status
@@ -55,6 +56,11 @@ export async function getTest(publicId: string): Promise<TestRow | null> {
     pageBytes: r.page_bytes === null ? undefined : Number(r.page_bytes),
     requestCount: r.request_count ?? undefined,
     docStatus: r.doc_status ?? undefined,
+    fcpMs: r.fcp_ms ?? undefined,
+    lcpMs: r.lcp_ms ?? undefined,
+    cls: r.cls === null || r.cls === undefined ? undefined : Number(r.cls),
+    tbtMs: r.tbt_ms ?? undefined,
+    ttfbMs: r.ttfb_ms ?? undefined,
     idleMs: r.idle_ms ?? undefined,
     idleReached: r.idle_reached ?? undefined,
     createdAt: r.created_at.toISOString(),
@@ -67,7 +73,13 @@ export async function getTest(publicId: string): Promise<TestRow | null> {
 export async function getRequests(publicId: string): Promise<RequestRow[]> {
   const { rows } = await pool().query(
     `select r.seq, r.url, r.domain, r.content_type, r.status_code, r.size_bytes, r.start_ms,
-            r.blocked_ms, r.dns_ms, r.connect_ms, r.ssl_ms, r.send_ms, r.wait_ms, r.receive_ms
+            r.blocked_ms, r.dns_ms, r.connect_ms, r.ssl_ms, r.send_ms, r.wait_ms, r.receive_ms,
+            r.is_redirect, r.cacheable, r.protocol,
+            r.res_headers->>'content-encoding' as content_encoding,
+            r.res_headers->>'cache-control' as cache_control,
+            (r.res_headers ? 'strict-transport-security') as hsts,
+            (r.res_headers ? 'content-security-policy') as csp,
+            (r.res_headers ? 'x-content-type-options') as no_sniff
        from requests r join tests t on t.id = r.test_id
       where t.public_id = $1 order by r.start_ms, r.seq`,
     [publicId],
@@ -87,6 +99,14 @@ export async function getRequests(publicId: string): Promise<RequestRow[]> {
     sendMs: r.send_ms ?? 0,
     waitMs: r.wait_ms ?? 0,
     receiveMs: r.receive_ms ?? 0,
+    isRedirect: r.is_redirect ?? false,
+    cacheable: r.cacheable,
+    protocol: r.protocol ?? null,
+    contentEncoding: r.content_encoding ?? "",
+    cacheControl: r.cache_control ?? "",
+    hsts: r.hsts ?? false,
+    csp: r.csp ?? false,
+    noSniff: r.no_sniff ?? false,
   }));
 }
 
@@ -98,6 +118,42 @@ export async function getRules(publicId: string): Promise<RuleResult[]> {
     [publicId],
   );
   return rows.map((r) => ({ key: r.rule_key, name: r.name, score: r.score, advice: r.advice ?? "" }));
+}
+
+/** The loading filmstrip frames for a test, oldest first. Empty for tests without frames. */
+export async function getFrames(publicId: string): Promise<TestFrame[]> {
+  const { rows } = await pool().query(
+    `select f.at_ms, f.image
+       from test_frames f join tests t on t.id = f.test_id
+      where t.public_id = $1 order by f.at_ms`,
+    [publicId],
+  );
+  return rows.map((r) => ({ atMs: r.at_ms, image: r.image }));
+}
+
+/** Past tests of the same URL and location (including this one), oldest first, for the trend chart.
+ *  Only scored, finished tests count. Returns [] when this is the only one. */
+export async function getHistory(publicId: string, limit = 12): Promise<HistoryPoint[]> {
+  const { rows } = await pool().query(
+    `select t.public_id, t.score, t.load_ms, t.created_at
+       from tests t
+       join tests cur on cur.public_id = $1
+      where t.url = cur.url and t.location_id = cur.location_id
+        and t.status = 'done' and t.score is not null and t.load_ms is not null
+      order by t.created_at desc
+      limit $2`,
+    [publicId, limit],
+  );
+  if (rows.length < 2) return [];
+  return rows
+    .map((r) => ({
+      publicId: r.public_id,
+      score: r.score,
+      loadMs: r.load_ms,
+      createdAt: r.created_at.toISOString(),
+      current: r.public_id === publicId,
+    }))
+    .reverse();
 }
 
 /** How many tests are waiting and how many are being measured right now. */

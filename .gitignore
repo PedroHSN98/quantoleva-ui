@@ -7,3 +7,8 @@ replica/screens
 test-results
 playwright-report
 !.env.example
+
+# App de desktop (Electron) — binários pesados, não vão para o repositório
+desktop/node_modules
+desktop/dist
+desktop/ms-playwright

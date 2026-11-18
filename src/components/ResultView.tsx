@@ -4,13 +4,18 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Activity, CheckCircle2, Copy, Download, FileDown, Globe, Layers, Loader2, MapPin, Package, Plus, Timer, TriangleAlert, XCircle, Zap, type LucideIcon } from "lucide-react";
 import { downloadText, fileNameFor, resultCsv } from "@/lib/export-csv";
-import type { RequestRow, RuleResult, TestRow } from "@/lib/types";
+import type { HistoryPoint, RequestRow, RuleResult, TestFrame, TestRow } from "@/lib/types";
 import { spread } from "@/lib/median";
 import { blockNotice } from "@/lib/block-notice";
 import { idleText, LOAD_HINT } from "@/lib/timing";
 import { GradeRing, VERDICT } from "./GradeRing";
 import { ImprovementPlan } from "./ImprovementPlan";
 import { FilesExplorer } from "./FilesExplorer";
+import { Diagnostics } from "./Diagnostics";
+import { WeightBreakdown } from "./WeightBreakdown";
+import { HistoryChart } from "./HistoryChart";
+import { WebVitals } from "./WebVitals";
+import { Filmstrip } from "./Filmstrip";
 import { Legend } from "./Legend";
 
 function formatBytes(b: number) {
@@ -53,6 +58,8 @@ export function ResultView({ id }: { id: string }) {
   const [test, setTest] = useState<TestRow | null>(null);
   const [rules, setRules] = useState<RuleResult[]>([]);
   const [requests, setRequests] = useState<RequestRow[]>([]);
+  const [frames, setFrames] = useState<TestFrame[]>([]);
+  const [history, setHistory] = useState<HistoryPoint[]>([]);
   const [missing, setMissing] = useState(false);
   const [copied, setCopied] = useState(false);
   const [slow, setSlow] = useState(false);
@@ -72,8 +79,16 @@ export function ResultView({ id }: { id: string }) {
       setTest(data.test);
       setRules(data.rules);
       if (data.test.status === "done") {
-        const r = await fetch(`/api/tests/${id}/requests`, { cache: "no-store" });
-        if (!stop) setRequests(await r.json());
+        const [r, h, fr] = await Promise.all([
+          fetch(`/api/tests/${id}/requests`, { cache: "no-store" }),
+          fetch(`/api/tests/${id}/history`, { cache: "no-store" }),
+          fetch(`/api/tests/${id}/frames`, { cache: "no-store" }),
+        ]);
+        if (!stop) {
+          setRequests(await r.json());
+          setHistory(await h.json());
+          setFrames(await fr.json());
+        }
       } else if (data.test.status !== "failed") {
         setTimeout(poll, 1000);
       }
@@ -259,6 +274,20 @@ export function ResultView({ id }: { id: string }) {
         )}
       </section>
 
+      {!notice && (test.lcpMs != null || test.fcpMs != null || test.cls != null || test.tbtMs != null || test.ttfbMs != null) && (
+        <section aria-labelledby="vitals" className="space-y-5">
+          <SectionHead id="vitals" title="Métricas de experiência (Core Web Vitals)" lead="O que o visitante sente: quando o conteúdo principal aparece, o quanto a tela se mexe e quanto tempo fica travada. As faixas (bom/a melhorar/ruim) seguem o Google e não entram na nota." />
+          <WebVitals test={test} />
+        </section>
+      )}
+
+      {frames.length > 0 && (
+        <section aria-labelledby="filmstrip" className="space-y-5">
+          <SectionHead id="filmstrip" title="A página aparecendo" lead="Quadros capturados durante o carregamento, do primeiro ao último." />
+          <Filmstrip frames={frames} />
+        </section>
+      )}
+
       {many && (
         <section aria-labelledby="runs" className="space-y-4">
           <SectionHead id="runs" title="Execuções" />
@@ -291,6 +320,13 @@ export function ResultView({ id }: { id: string }) {
         </section>
       )}
 
+      {history.length >= 2 && (
+        <section aria-labelledby="history" className="space-y-5">
+          <SectionHead id="history" title="Evolução" lead="Como a nota e o tempo deste endereço mudaram nos testes anteriores, do mesmo local. Clique num ponto para abrir aquele teste." />
+          <HistoryChart history={history} />
+        </section>
+      )}
+
       {!notice && (
         <section aria-labelledby="rules" className="space-y-5">
           <SectionHead id="rules" title="Como melhorar" lead="Seis regras formam a nota. As que estão abaixo de 90 trazem uma dica." />
@@ -316,6 +352,20 @@ export function ResultView({ id }: { id: string }) {
             })}
           </ul>
           <ImprovementPlan test={test} rules={rules} requests={requests} />
+        </section>
+      )}
+
+      {requests.length > 0 && (
+        <section aria-labelledby="diag" className="space-y-5">
+          <SectionHead id="diag" title="Diagnóstico" lead="Checagens de boas práticas a partir do que o teste já mediu: compressão, cache, redirecionamentos, segurança e protocolo." />
+          <Diagnostics requests={requests} pageUrl={test.url} />
+        </section>
+      )}
+
+      {requests.length > 0 && (
+        <section aria-labelledby="breakdown" className="space-y-5">
+          <SectionHead id="breakdown" title="Do que a página é feita" lead="O peso dividido por tipo de arquivo e quais domínios mais pedem recursos." />
+          <WeightBreakdown requests={requests} />
         </section>
       )}
 

@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Quantoleva</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
+          <rect width="32" height="32" rx="7" fill="#4fd1c5" />
+          <path d="M7.5 21a8.5 8.5 0 0 1 17 0" fill="none" stroke="#05211f" stroke-opacity=".35" stroke-width="2.6" stroke-linecap="round" />
+          <path d="M7.5 21a8.5 8.5 0 0 1 5.4-7.9" fill="none" stroke="#05211f" stroke-width="2.6" stroke-linecap="round" />
+          <path d="M16 21l5.2-6.2" fill="none" stroke="#05211f" stroke-width="2.6" stroke-linecap="round" />
+          <circle cx="16" cy="21" r="2.1" fill="#05211f" />
+        </svg>
+        <span>Quantoleva</span>
+      </div>
+      <span class="tag">Teste de velocidade de páginas</span>
+    </header>
+
+    <main class="wrap">
+      <form id="form" class="searchform" autocomplete="off">
+        <div id="url-list" class="url-list">
+          <div class="url-row">
+            <input type="text" class="url-input" placeholder="cole o endereço, ex.: exemplo.com.br" aria-label="Endereço da página" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button id="add-url" type="button" class="btn-ghost">+ Adicionar outro endereço</button>
+          <button id="go" type="submit" class="btn-go">Medir</button>
+        </div>
+      </form>
+      <p class="hint">Carregamos a página num navegador de verdade, sem cache. Você pode medir até <code>localhost</code> e comparar até <strong>10 endereços</strong> de uma vez.</p>
+
+      <section id="loading" class="panel center hidden" aria-live="polite">
+        <div class="spinner" aria-hidden="true"></div>
+        <p id="loading-text">Abrindo a página e medindo cada arquivo…</p>
+      </section>
+
+      <section id="error" class="panel error hidden" role="alert"></section>
+
+      <section id="batch" class="hidden">
+        <div class="batch-head">
+          <h2 class="section-title" style="margin-top:0">Comparação de <span id="batch-count">0</span> endereços</h2>
+          <p id="batch-status" class="files-status"></p>
+        </div>
+        <div class="table-wrap">
+          <table class="files batch-table">
+            <thead>
+              <tr><th>Endereço</th><th>Estado</th><th class="num">Carregou em</th><th class="num">Nota</th><th class="num">Tamanho</th><th class="num">Requisições</th><th></th></tr>
+            </thead>
+            <tbody id="batch-rows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="result" class="hidden">
+        <button id="back-to-batch" class="btn-ghost hidden" type="button">&larr; Voltar à comparação</button>
+        <div class="result-head">
+          <div class="ring-card">
+            <p class="muted small up">Nota</p>
+            <div id="ring" class="ring"><span id="grade">–</span></div>
+            <p id="verdict" class="verdict">—</p>
+          </div>
+          <div class="tiles" id="tiles"></div>
+        </div>
+
+        <section id="vitals-section" class="hidden">
+          <h2 class="section-title">Métricas de experiência (Core Web Vitals)</h2>
+          <p class="files-status">O que o visitante sente: quando o conteúdo aparece, o quanto a tela se mexe e quanto tempo fica travada. As faixas seguem o Google e não entram na nota.</p>
+          <div id="vitals" class="vitals"></div>
+        </section>
+
+        <section id="filmstrip-section" class="hidden">
+          <h2 class="section-title">A página aparecendo</h2>
+          <p class="files-status">Quadros capturados durante o carregamento, do primeiro ao último.</p>
+          <div id="filmstrip" class="filmstrip"></div>
+        </section>
+
+        <section id="history-section" class="hidden">
+          <h2 class="section-title">Evolução</h2>
+          <p class="files-status">Como a nota e o tempo deste endereço mudaram nos últimos testes feitos neste computador.</p>
+          <div id="history" class="history"></div>
+        </section>
+
+        <h2 class="section-title">Como melhorar</h2>
+        <ul id="rules" class="rules"></ul>
+
+        <section id="diag-section" class="hidden">
+          <h2 class="section-title">Diagnóstico</h2>
+          <p class="files-status">Checagens de boas práticas a partir do que o teste já mediu: compressão, cache, redirecionamentos, segurança e protocolo.</p>
+          <ul id="diag" class="diag"></ul>
+        </section>
+
+        <section id="breakdown-section" class="hidden">
+          <h2 class="section-title">Do que a página é feita</h2>
+          <div class="breakdown">
+            <div class="panel breakdown-card">
+              <h3 class="bd-title">Peso por tipo de arquivo</h3>
+              <div id="donut" class="donut"></div>
+            </div>
+            <div class="panel breakdown-card">
+              <h3 class="bd-title">Requisições por domínio</h3>
+              <ul id="domain-bars" class="domain-bars"></ul>
+            </div>
+          </div>
+        </section>
+
+        <h2 class="section-title">Arquivos pedidos (<span id="req-count">0</span>)</h2>
+        <div class="files-controls">
+          <div id="type-chips" class="chips" role="group" aria-label="Filtrar por tipo de arquivo"></div>
+          <div class="sort">
+            <label for="sort-select">Ordenar por</label>
+            <select id="sort-select">
+              <option value="load">Ordem de carregamento</option>
+              <option value="size-desc">Maior tamanho primeiro</option>
+              <option value="size-asc">Menor tamanho primeiro</option>
+              <option value="slow">Mais demorados primeiro</option>
+            </select>
+          </div>
+        </div>
+        <p id="files-status" class="files-status" role="status" aria-live="polite"></p>
+        <div class="table-wrap">
+          <table class="files">
+            <thead>
+              <tr><th>Arquivo</th><th>Tipo</th><th class="num">Código</th><th class="num">Tamanho</th></tr>
+            </thead>
+            <tbody id="files"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <div id="lightbox" class="lightbox hidden" role="dialog" aria-modal="true" aria-label="Visualizar imagem">
+      <button id="lightbox-close" class="lightbox-close" aria-label="Fechar">&times;</button>
+      <div class="lightbox-inner">
+        <img id="lightbox-img" alt="" />
+        <p id="lightbox-caption" class="lightbox-caption"></p>
+        <div class="lightbox-actions">
+          <button id="lb-copy" class="lb-btn" type="button">Copiar URL</button>
+          <button id="lb-open" class="lb-btn" type="button">Abrir no navegador</button>
+          <button id="lb-download" class="lb-btn primary" type="button">Baixar imagem</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

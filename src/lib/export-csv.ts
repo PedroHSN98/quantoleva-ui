@@ -43,6 +43,11 @@ export function resultCsv(test: TestRow, rules: RuleResult[], requests: RequestR
   lines.push(row(["Tamanho da página (MB)", mb(test.pageBytes ?? 0)]));
   lines.push(row(["Requisições", test.requestCount]));
   if (first) lines.push(row(["Primeira resposta do servidor (ms)", first.dnsMs + first.connectMs + first.sslMs + first.sendMs + first.waitMs]));
+  if (test.lcpMs != null) lines.push(row(["LCP - maior elemento visível (ms)", test.lcpMs]));
+  if (test.fcpMs != null) lines.push(row(["FCP - primeiro conteúdo (ms)", test.fcpMs]));
+  if (test.cls != null) lines.push(row(["CLS - deslocamento de layout", String(test.cls).replace(".", ",")]));
+  if (test.tbtMs != null) lines.push(row(["TBT - tempo de bloqueio (ms)", test.tbtMs]));
+  if (test.ttfbMs != null) lines.push(row(["TTFB - resposta do servidor (ms)", test.ttfbMs]));
   lines.push(row(["Status da página principal", test.docStatus]));
   if (notice) lines.push(row(["Aviso", `${notice.short}. ${notice.long}`]));
   lines.push("");

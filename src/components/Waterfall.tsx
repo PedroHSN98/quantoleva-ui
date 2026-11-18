@@ -42,7 +42,12 @@ export function Waterfall({ requests, scaleMs }: { requests: RequestRow[]; scale
             <th scope="col" className="sticky top-0 z-10 bg-surface px-3 py-2.5">Tipo</th>
             <th scope="col" className="sticky top-0 z-10 bg-surface px-3 py-2.5">Código</th>
             <th scope="col" className="sticky top-0 z-10 bg-surface px-3 py-2.5 text-right">Tamanho</th>
-            <th scope="col" className="sticky top-0 z-10 w-[40%] bg-surface px-3 py-2.5">Linha do tempo ({total} ms)</th>
+            <th scope="col" className="sticky top-0 z-10 w-[40%] bg-surface px-3 py-2.5">
+              <span>Linha do tempo</span>
+              <span className="mt-1 flex justify-between text-[10px] font-normal tabular-nums text-muted" aria-hidden>
+                <span>0</span><span>{Math.round(total / 4)}</span><span>{Math.round(total / 2)}</span><span>{Math.round((total * 3) / 4)}</span><span>{total} ms</span>
+              </span>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -79,11 +84,30 @@ export function Waterfall({ requests, scaleMs }: { requests: RequestRow[]; scale
                     </div>
                   </td>
                   <td className="px-3 py-1.5">
-                    <div className="relative h-4" role="img" aria-label={`${duration} ms, começando em ${r.startMs} ms`}>
+                    <div className="group/bar relative h-4" role="img" aria-label={`${duration} ms, começando em ${r.startMs} ms`}>
+                      <div className="pointer-events-none absolute inset-0" aria-hidden>
+                        {[25, 50, 75].map((p) => (
+                          <span key={p} className="absolute top-0 h-full border-l border-border/60" style={{ left: `${p}%` }} />
+                        ))}
+                      </div>
                       <div className="absolute flex h-full" style={{ left: `${(r.startMs / total) * 100}%`, width: `${(duration / total) * 100}%` }}>
                         {PHASES.map((p) => r[p.key] > 0 && (
                           <span key={p.key} className={`h-full ${p.cls}`} style={{ width: `${(r[p.key] / duration) * 100}%` }} />
                         ))}
+                      </div>
+                      <div className="pointer-events-none absolute top-full left-1/2 z-30 mt-1 hidden w-48 -translate-x-1/2 rounded-md border border-border bg-bg p-2 text-left shadow-pop group-hover/bar:block">
+                        <p className="mb-1 flex justify-between gap-2 text-[11px] font-semibold">
+                          <span>Começa em {r.startMs} ms</span><span className="tabular-nums">{duration} ms</span>
+                        </p>
+                        <dl className="space-y-0.5">
+                          {PHASES.filter((p) => r[p.key] > 0).map((p) => (
+                            <div key={p.key} className="flex items-center gap-1.5 text-[11px]">
+                              <span className={`h-2.5 w-2.5 rounded-sm ${p.cls}`} aria-hidden />
+                              <dt className="text-muted">{p.label}</dt>
+                              <dd className="ml-auto tabular-nums">{r[p.key]} ms</dd>
+                            </div>
+                          ))}
+                        </dl>
                       </div>
                     </div>
                   </td>
