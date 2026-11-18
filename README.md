@@ -156,6 +156,75 @@ npm run worker
 
 ---
 
+## ❓ Problemas comuns
+
+<details>
+<summary><strong>"node" ou "npm" não é reconhecido como comando</strong></summary>
+
+O Node.js não foi instalado ou o terminal foi aberto antes da instalação.
+**Feche e abra o terminal de novo** e tente `node -v`. Se ainda não funcionar,
+reinstale pelo https://nodejs.org (versão LTS).
+</details>
+
+<details>
+<summary><strong>O <code>npm install</code> deu erro</strong></summary>
+
+Quase sempre é internet instável ou um download que caiu no meio. Tente:
+1. Confirme que você está conectado à internet.
+2. Rode o comando de novo: `npm install`.
+3. Se insistir, limpe o cache e tente mais uma vez:
+   ```bash
+   npm cache clean --force
+   npm install
+   ```
+</details>
+
+<details>
+<summary><strong>No app de desktop, a página não é medida / fica dando erro</strong></summary>
+
+Falta o navegador de medição. Dentro da pasta `desktop`, rode uma vez:
+```bash
+npx playwright install chromium
+```
+Depois abra o app de novo com `npm start`.
+</details>
+
+<details>
+<summary><strong>No site aparece "nenhum servidor de teste disponível"</strong></summary>
+
+O medidor (**worker**) não está rodando. O site precisa de **dois terminais abertos
+ao mesmo tempo**: um com `npm run dev` e outro com `npm run worker`. Abra o segundo
+terminal, entre na pasta do projeto e rode `npm run worker`.
+</details>
+
+<details>
+<summary><strong>No site: erro de banco de dados / o <code>npm run db:up</code> falha</strong></summary>
+
+O banco roda dentro do **Docker**, então o Docker precisa estar **instalado e aberto**.
+Abra o Docker Desktop, espere ele terminar de iniciar e rode `npm run db:up` de novo.
+</details>
+
+<details>
+<summary><strong>"porta 3000 já está em uso" (site)</strong></summary>
+
+Já existe algo rodando nessa porta (talvez um `npm run dev` que ficou aberto).
+Feche o outro terminal, ou rode o site em outra porta:
+```bash
+npm run dev -- -p 3001
+```
+Aí o endereço passa a ser `http://localhost:3001`.
+</details>
+
+<details>
+<summary><strong>Fechei tudo. Como abro de novo?</strong></summary>
+
+Não precisa instalar nada de novo. Abra o terminal, entre na pasta do projeto e:
+- **Desktop:** `cd desktop` e depois `npm start`.
+- **Site:** `npm run dev` num terminal e `npm run worker` noutro (com o Docker aberto).
+</details>
+
+---
+
 ## Telas
 
 | Página inicial | Relatório |
