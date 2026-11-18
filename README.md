@@ -49,15 +49,62 @@ A lógica de medição e de nota é a mesma nas duas.
 
 ---
 
+## 🚀 Passo a passo do zero (para quem nunca fez isso)
+
+Siga na ordem. Serve para **Windows, macOS e Linux**.
+
+### Passo 1 — Instalar o Node.js
+
+1. Acesse **https://nodejs.org** e baixe a versão **LTS** (o botão da esquerda).
+2. Abra o arquivo baixado e vá clicando em **Avançar** até concluir a instalação.
+3. Para conferir se deu certo, abra o **terminal** e digite:
+   - **Windows:** abra o menu Iniciar, procure por **PowerShell** e abra.
+   - **macOS:** abra o **Terminal**.
+
+   ```bash
+   node -v
+   ```
+   Se aparecer um número como `v22.x.x`, está instalado. 👍
+
+### Passo 2 — Baixar o projeto
+
+**Opção A — sem programa nenhum (mais fácil):**
+1. Abra https://github.com/PedroHSN98/quantoleva-ui
+2. Clique no botão verde **Code** → **Download ZIP**.
+3. Descompacte o arquivo numa pasta à sua escolha (ex.: `Documentos`).
+
+**Opção B — com Git** (se você tiver o [Git](https://git-scm.com) instalado):
+```bash
+git clone https://github.com/PedroHSN98/quantoleva-ui.git
+```
+
+### Passo 3 — Abrir a pasta do projeto no terminal
+
+No terminal, entre na pasta que você baixou. Exemplo:
+```bash
+cd Documentos/quantoleva-ui
+```
+> Dica: digite `cd ` (com espaço) e **arraste a pasta** para dentro do terminal — o caminho é preenchido sozinho.
+
+### Passo 4 — Rodar
+
+Agora é só seguir **uma** das duas opções abaixo:
+- **App de Desktop** (mais fácil, recomendado) 👇
+- **Site** (mais abaixo) — se quiser a versão web com link compartilhável.
+
+---
+
 ## 🖥️ Rodar o App de Desktop (jeito mais fácil)
 
-**Precisa de:** [Node.js](https://nodejs.org) 22 ou mais novo. Só isso.
+**Precisa de:** só o Node.js (Passo 1 acima).
+
+A partir da pasta do projeto (Passo 3), rode:
 
 ```bash
 # 1. Entre na pasta do app de desktop
 cd desktop
 
-# 2. Instale as dependências
+# 2. Instale as dependências (demora um pouco na primeira vez)
 npm install
 
 # 3. Baixe o navegador de medição (só na primeira vez)
@@ -67,7 +114,9 @@ npx playwright install chromium
 npm start
 ```
 
-Pronto — a janela do Quantoleva abre, você cola um endereço e clica em **Medir**.
+Pronto — a janela do Quantoleva abre, você cola um endereço e clica em **Medir**. 🎉
+
+> **Nas próximas vezes** você só precisa de `cd desktop` e `npm start` — os passos 2 e 3 são uma vez só.
 
 > **Gerar um instalador `.exe`** (para abrir o app sem precisar do Node): veja o
 > passo a passo em [`desktop/README.md`](desktop/README.md).
@@ -76,7 +125,9 @@ Pronto — a janela do Quantoleva abre, você cola um endereço e clica em **Med
 
 ## 🌐 Rodar o Site
 
-**Precisa de:** [Node.js](https://nodejs.org) 22+ e [Docker](https://www.docker.com) (para o banco de dados).
+**Precisa de:** Node.js (Passo 1) e [Docker](https://www.docker.com) instalado e aberto (para o banco de dados).
+
+A partir da pasta do projeto (Passo 3):
 
 ```bash
 # 1. Dependências
